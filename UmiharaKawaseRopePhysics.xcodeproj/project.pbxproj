@@ -11,6 +11,8 @@
 		94E676AC29DD39FE0083EFA0 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E676AB29DD39FE0083EFA0 /* SDL2.framework */; };
 		94E676AF29DD459F0083EFA0 /* game.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676AD29DD459F0083EFA0 /* game.cpp */; };
 		94E676B229DE6F910083EFA0 /* grapple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676B029DE6F910083EFA0 /* grapple.cpp */; };
+		94E676B529DE70D50083EFA0 /* level.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676B329DE70D50083EFA0 /* level.cpp */; };
+		94E676B829DE74A00083EFA0 /* player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676B629DE74A00083EFA0 /* player.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,6 +35,10 @@
 		94E676AE29DD459F0083EFA0 /* game.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = game.hpp; sourceTree = "<group>"; };
 		94E676B029DE6F910083EFA0 /* grapple.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = grapple.cpp; sourceTree = "<group>"; };
 		94E676B129DE6F910083EFA0 /* grapple.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = grapple.hpp; sourceTree = "<group>"; };
+		94E676B329DE70D50083EFA0 /* level.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = level.cpp; sourceTree = "<group>"; };
+		94E676B429DE70D50083EFA0 /* level.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = level.hpp; sourceTree = "<group>"; };
+		94E676B629DE74A00083EFA0 /* player.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = player.cpp; sourceTree = "<group>"; };
+		94E676B729DE74A00083EFA0 /* player.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = player.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +78,10 @@
 				94E676AE29DD459F0083EFA0 /* game.hpp */,
 				94E676B029DE6F910083EFA0 /* grapple.cpp */,
 				94E676B129DE6F910083EFA0 /* grapple.hpp */,
+				94E676B329DE70D50083EFA0 /* level.cpp */,
+				94E676B429DE70D50083EFA0 /* level.hpp */,
+				94E676B629DE74A00083EFA0 /* player.cpp */,
+				94E676B729DE74A00083EFA0 /* player.hpp */,
 			);
 			path = UmiharaKawaseRopePhysics;
 			sourceTree = "<group>";
@@ -142,7 +152,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				94E676B229DE6F910083EFA0 /* grapple.cpp in Sources */,
+				94E676B829DE74A00083EFA0 /* player.cpp in Sources */,
 				94E676A429DD39760083EFA0 /* main.cpp in Sources */,
+				94E676B529DE70D50083EFA0 /* level.cpp in Sources */,
 				94E676AF29DD459F0083EFA0 /* game.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
