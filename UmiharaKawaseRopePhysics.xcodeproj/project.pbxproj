@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		94E676A429DD39760083EFA0 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676A329DD39760083EFA0 /* main.cpp */; };
+		94E676AC29DD39FE0083EFA0 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E676AB29DD39FE0083EFA0 /* SDL2.framework */; };
+		94E676AF29DD459F0083EFA0 /* game.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676AD29DD459F0083EFA0 /* game.cpp */; };
+		94E676B229DE6F910083EFA0 /* grapple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676B029DE6F910083EFA0 /* grapple.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +28,11 @@
 /* Begin PBXFileReference section */
 		94E676A029DD39760083EFA0 /* UmiharaKawaseRopePhysics */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UmiharaKawaseRopePhysics; sourceTree = BUILT_PRODUCTS_DIR; };
 		94E676A329DD39760083EFA0 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		94E676AB29DD39FE0083EFA0 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		94E676AD29DD459F0083EFA0 /* game.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = game.cpp; sourceTree = "<group>"; };
+		94E676AE29DD459F0083EFA0 /* game.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = game.hpp; sourceTree = "<group>"; };
+		94E676B029DE6F910083EFA0 /* grapple.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = grapple.cpp; sourceTree = "<group>"; };
+		94E676B129DE6F910083EFA0 /* grapple.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = grapple.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				94E676AC29DD39FE0083EFA0 /* SDL2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -43,6 +52,7 @@
 			children = (
 				94E676A229DD39760083EFA0 /* UmiharaKawaseRopePhysics */,
 				94E676A129DD39760083EFA0 /* Products */,
+				94E676AA29DD39FE0083EFA0 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -58,8 +68,20 @@
 			isa = PBXGroup;
 			children = (
 				94E676A329DD39760083EFA0 /* main.cpp */,
+				94E676AD29DD459F0083EFA0 /* game.cpp */,
+				94E676AE29DD459F0083EFA0 /* game.hpp */,
+				94E676B029DE6F910083EFA0 /* grapple.cpp */,
+				94E676B129DE6F910083EFA0 /* grapple.hpp */,
 			);
 			path = UmiharaKawaseRopePhysics;
+			sourceTree = "<group>";
+		};
+		94E676AA29DD39FE0083EFA0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				94E676AB29DD39FE0083EFA0 /* SDL2.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -119,7 +141,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				94E676B229DE6F910083EFA0 /* grapple.cpp in Sources */,
 				94E676A429DD39760083EFA0 /* main.cpp in Sources */,
+				94E676AF29DD459F0083EFA0 /* game.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,6 +263,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -247,6 +275,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
