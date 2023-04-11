@@ -2,7 +2,7 @@
 
 #include "grapple.hpp"
 
-const double STRETCH_ACCELERATION = 0.1;
+const double STRETCH_ACCELERATION = 0.25;
 
 Rope::Rope(Player *p, int gX, int gY) {
     _player = p;
@@ -10,8 +10,8 @@ Rope::Rope(Player *p, int gX, int gY) {
     _grappleX = gX;
     _grappleY = gY;
     
-    double diffX = _grappleX - p->getX();
-    double diffY = _grappleY - p->getY();
+    double diffX = _grappleX - (p->getX() + p->getWidth() / 2);
+    double diffY = _grappleY - (p->getY() + p->getHeight() / 2);
     _ropeLength = sqrt(pow(diffX, 2) + pow(diffY, 2));
     _angle = atan2(diffY, diffX);
     _stretch = 0;
@@ -23,7 +23,7 @@ double Rope::getAccelerationX() {
     }
     
     double stretchFactor = _stretch * STRETCH_ACCELERATION;
-    return stretchFactor * cos(_angle);
+    return -stretchFactor * cos(_angle);
 }
 
 double Rope::getAccelerationY() {
@@ -32,14 +32,14 @@ double Rope::getAccelerationY() {
     }
     
     double stretchFactor = _stretch * STRETCH_ACCELERATION;
-    return stretchFactor * sin(_angle);
+    return -stretchFactor * sin(_angle);
 }
 
 bool Rope::update() {
-    double diffX = _grappleX - _player->getX();
-    double diffY = _grappleY - _player->getY();
+    double diffX = _grappleX - (_player->getX() + _player->getWidth() / 2);
+    double diffY = _grappleY - (_player->getY() + _player->getHeight() / 2);
     _angle = atan2(diffY, diffX);
-    _stretch = _ropeLength - sqrt(pow(diffX, 2) + pow(diffY, 2));
+    _stretch = sqrt(pow(diffX, 2) + pow(diffY, 2)) - _ropeLength;
     
     return true;
 }

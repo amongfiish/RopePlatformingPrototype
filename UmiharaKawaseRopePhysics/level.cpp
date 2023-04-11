@@ -46,6 +46,11 @@ void Platform::setHeight(int h) {
     _height = h;
 }
 
+void Platform::setPos(int x, int y) {
+    _x = x;
+    _y = y;
+}
+
 void Platform::draw(SDL_Renderer *renderer) {
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     

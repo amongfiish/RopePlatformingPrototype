@@ -18,6 +18,8 @@ public:
     void setWidth(int w);
     void setHeight(int h);
     
+    void setPos(int x, int y);
+    
     void draw(SDL_Renderer *renderer);
     
 private:

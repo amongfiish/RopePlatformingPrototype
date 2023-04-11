@@ -10,11 +10,13 @@ SDL_Renderer *renderer = NULL;
 const int WINDOW_WIDTH = 600;
 const int WINDOW_HEIGHT = 400;
 
+const int FPS = 60;
+
 bool init();
 void cleanUp();
 
 int main(int argc, const char * argv[]) {
-    if (!init()) {
+    if (!init() || !gameInit()) {
         cleanUp();
         return -1;
     }
@@ -22,6 +24,8 @@ int main(int argc, const char * argv[]) {
     SDL_Event e;
     bool running = true;
     while (running) {
+        Uint32 startTicks = SDL_GetTicks();
+        
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 running = false;
@@ -37,8 +41,14 @@ int main(int argc, const char * argv[]) {
         SDL_RenderClear(renderer);
         
         // draw
+        gameDraw(renderer);
         
         SDL_RenderPresent(renderer);
+        
+        Uint32 elapsedTicks = SDL_GetTicks() - startTicks;
+        if (elapsedTicks < 1000.0 / FPS) {
+            SDL_Delay(static_cast<Uint32>(1000.0 / FPS - elapsedTicks));
+        }
     }
     
     cleanUp();
@@ -67,6 +77,8 @@ bool init() {
 }
 
 void cleanUp() {
+    gameCleanUp();
+    
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     renderer = NULL;

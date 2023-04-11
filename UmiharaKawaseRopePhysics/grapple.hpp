@@ -6,6 +6,8 @@
 const int MIN_ROPE_LENGTH = 0;
 const int MAX_ROPE_LENGTH = 96;
 
+class Player;
+
 class Rope {
 public:
     Rope(Player *p, int gX, int gY);

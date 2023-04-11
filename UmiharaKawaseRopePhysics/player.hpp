@@ -4,9 +4,12 @@
 #include <SDL2/SDL.h>
 
 #include "level.hpp"
+#include "grapple.hpp"
 
 const int PLAYER_WIDTH = 32;
 const int PLAYER_HEIGHT = 32;
+
+class Rope;
 
 enum Direction {
     UP,
@@ -24,6 +27,12 @@ public:
     int getWidth();
     int getHeight();
     
+    void setPos(int x, int y);
+    void stop();
+    
+    void createRope(int gX, int gY);
+    void destroyRope();
+    
     bool update(const Uint8 *keys, Platform *level, int numPlatforms);
     void draw(SDL_Renderer *renderer);
     
@@ -37,6 +46,8 @@ private:
     
     double _velocityX;
     double _velocityY;
+    
+    Rope *_rope;
 };
 
 #endif
