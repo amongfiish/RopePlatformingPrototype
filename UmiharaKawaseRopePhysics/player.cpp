@@ -1,7 +1,7 @@
 #include "player.hpp"
 
 const double GRAVITY = 0.1;
-const double SWING_SLOWDOWN = 0.003;  // air resistance
+const double SWING_SLOWDOWN = 0.005;  // air resistance
 
 Player::Player() {
     _x = 0;
@@ -124,13 +124,6 @@ int Player::checkCollision(Platform *p) {
 bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
     _velocityY += GRAVITY;
     
-    if (_rope) {
-        _rope->update(level, numPlatforms);
-        
-        _velocityX += _rope->getAccelerationX();
-        _velocityY += _rope->getAccelerationY();
-    }
-    
     int collision = -1;
     for (int i = 0; i < numPlatforms; i++) {
         collision = checkCollision(level + i);
@@ -166,6 +159,13 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
     
     _x += _velocityX;
     _y += _velocityY;
+    
+    if (_rope) {
+        _rope->update(level, numPlatforms);
+        
+        _velocityX += _rope->getAccelerationX();
+        _velocityY += _rope->getAccelerationY();
+    }
     
     return true;
 }

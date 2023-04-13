@@ -16,12 +16,28 @@ int Pivot::getY() {
     return _y;
 }
 
+int Pivot::getDrawX() {
+    return _drawX;
+}
+
+int Pivot::getDrawY() {
+    return _drawY;
+}
+
 void Pivot::setX(int x) {
     _x = x;
 }
 
 void Pivot::setY(int y) {
     _y = y;
+}
+
+void Pivot::setDrawX(int x) {
+    _drawX = x;
+}
+
+void Pivot::setDrawY(int y) {
+    _drawY = y;
 }
 
 void Pivot::setAttachAngle(double attachAngle) {
@@ -89,7 +105,7 @@ double Rope::getCurrentLength() {
     diffY = _pivots[_numberOfPivots - 1].getY() - (_player->getY() + _player->getHeight() / 2);
     sum += sqrt(pow(diffX, 2) + pow(diffY, 2));
     
-    printf("Current Rope Length: %f\n", sum);
+//    printf("Current Rope Length: %f\n", sum);
 //    printf("Real Rope Length: %f\n", _ropeLength);
 //    printf("Number of Pivots: %d\n", _numberOfPivots);
     return sum;
@@ -171,23 +187,31 @@ int Rope::collideCorners(Platform *level, int numPlatforms) {
                     // up/left and down/right
                     if (direction == UP || direction == RIGHT) {
                         // moving 'right'
-                        _pivots[_numberOfPivots].setX(level[i].getX() - 1);
-                        _pivots[_numberOfPivots].setY(level[i].getY() + level[i].getHeight());
+                        _pivots[_numberOfPivots].setX(level[i].getX() - 2);
+                        _pivots[_numberOfPivots].setY(level[i].getY() + level[i].getHeight() + 1);
+                        _pivots[_numberOfPivots].setDrawX(level[i].getX() - 1);
+                        _pivots[_numberOfPivots].setDrawY(level[i].getY() + level[i].getHeight());
                     } else if (direction == DOWN || direction == LEFT) {
                         // moving 'left'
-                        _pivots[_numberOfPivots].setX(level[i].getX() + level[i].getWidth());
-                        _pivots[_numberOfPivots].setY(level[i].getY() - 1);
+                        _pivots[_numberOfPivots].setX(level[i].getX() + level[i].getWidth() + 1);
+                        _pivots[_numberOfPivots].setY(level[i].getY() - 2);
+                        _pivots[_numberOfPivots].setDrawX(level[i].getX() + level[i].getWidth());
+                        _pivots[_numberOfPivots].setDrawY(level[i].getY() - 1);
                     }
                 } else if ((_angle > M_PI_2) || (_angle > -M_PI_2 && _angle < 0)) {
                     // up/right and down/left
                     if (direction == DOWN || direction == RIGHT) {
                         // moving 'right'
-                        _pivots[_numberOfPivots].setX(level[i].getX() - 1);
-                        _pivots[_numberOfPivots].setY(level[i].getY() - 1);
+                        _pivots[_numberOfPivots].setX(level[i].getX() - 2);
+                        _pivots[_numberOfPivots].setY(level[i].getY() - 2);
+                        _pivots[_numberOfPivots].setDrawX(level[i].getX() - 1);
+                        _pivots[_numberOfPivots].setDrawY(level[i].getY() - 1);
                     } else if (direction == UP || direction == LEFT) {
                         // moving 'left'
-                        _pivots[_numberOfPivots].setX(level[i].getX() + level[i].getWidth());
-                        _pivots[_numberOfPivots].setY(level[i].getY() + level[i].getHeight());
+                        _pivots[_numberOfPivots].setX(level[i].getX() + level[i].getWidth() + 1);
+                        _pivots[_numberOfPivots].setY(level[i].getY() + level[i].getHeight() + 1);
+                        _pivots[_numberOfPivots].setDrawX(level[i].getX() + level[i].getWidth());
+                        _pivots[_numberOfPivots].setDrawY(level[i].getY() + level[i].getHeight());
                     }
                 }
                 
@@ -254,11 +278,11 @@ void Rope::draw(SDL_Renderer *renderer) {
     SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
     
     if (_numberOfPivots > 0) {
-        SDL_RenderDrawLine(renderer, _grappleX, _grappleY, _pivots[0].getX(), _pivots[0].getY());
+        SDL_RenderDrawLine(renderer, _grappleX, _grappleY, _pivots[0].getDrawX(), _pivots[0].getDrawY());
         for (int i = 1; i < _numberOfPivots; i++) {
-            SDL_RenderDrawLine(renderer, _pivots[i - 1].getX(), _pivots[i - 1].getY(), _pivots[i].getX(), _pivots[i].getY());
+            SDL_RenderDrawLine(renderer, _pivots[i - 1].getDrawX(), _pivots[i - 1].getDrawY(), _pivots[i].getDrawX(), _pivots[i].getDrawY());
         }
-        SDL_RenderDrawLine(renderer, _pivots[_numberOfPivots - 1].getX(), _pivots[_numberOfPivots - 1].getY(), _player->getX() + _player->getWidth() / 2, _player->getY() + _player->getHeight() / 2);
+        SDL_RenderDrawLine(renderer, _pivots[_numberOfPivots - 1].getDrawX(), _pivots[_numberOfPivots - 1].getDrawY(), _player->getX() + _player->getWidth() / 2, _player->getY() + _player->getHeight() / 2);
     } else {
         SDL_RenderDrawLine(renderer, static_cast<int>(_player->getX() + _player->getWidth() / 2), static_cast<int>(_player->getY() + _player->getHeight() / 2), _grappleX, _grappleY);
     }

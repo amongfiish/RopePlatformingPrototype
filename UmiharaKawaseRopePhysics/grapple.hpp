@@ -20,9 +20,13 @@ class Pivot {
 public:
     int getX();
     int getY();
+    int getDrawX();
+    int getDrawY();
     
     void setX(int x);
     void setY(int y);
+    void setDrawX(int x);
+    void setDrawY(int y);
     
     void setAttachAngle(double attachAngle);
     double getAttachAngle();
@@ -30,6 +34,8 @@ public:
 private:
     int _x;
     int _y;
+    int _drawX;
+    int _drawY;
     
     double _attachAngle;
 };

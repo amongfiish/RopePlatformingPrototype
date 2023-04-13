@@ -15,8 +15,8 @@ bool gameInit() {
     level[0].setWidth(64);
     level[0].setHeight(32);
     
-    player.setPos(0, 0);
-    player.createRope(216, 16);
+    player.setPos(-100, -100);
+    player.createRope(200, 0);
     
     return true;
 }
