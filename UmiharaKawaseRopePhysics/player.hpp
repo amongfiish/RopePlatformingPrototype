@@ -10,6 +10,7 @@ const int PLAYER_WIDTH = 32;
 const int PLAYER_HEIGHT = 32;
 
 class Rope;
+class GrappleSeeker;
 
 enum Direction {
     UP,
@@ -32,6 +33,9 @@ public:
     void setPos(int x, int y);
     void stop();
     
+    void createGrappleSeeker(double angle);
+    void destroyGrappleSeeker();
+    
     void createRope(int gX, int gY);
     void destroyRope();
     
@@ -49,6 +53,10 @@ private:
     double _velocityX;
     double _velocityY;
     
+    bool _grounded;
+    int _facing;
+    
+    GrappleSeeker *_grappleSeeker;
     Rope *_rope;
 };
 

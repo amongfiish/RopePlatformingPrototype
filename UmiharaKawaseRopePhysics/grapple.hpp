@@ -11,10 +11,33 @@ enum CORNERS {
     BOTTOM_RIGHT
 };
 
-const int MIN_ROPE_LENGTH = 0;
-const int MAX_ROPE_LENGTH = 96;
+const int MIN_ROPE_LENGTH = 8;
+const int MAX_ROPE_LENGTH = 200;
 
 class Player;
+
+class GrappleSeeker {
+public:
+    GrappleSeeker(Player *player, double angle);
+    
+    void addVelocityX(double x);
+    void addVelocityY(double y);
+    
+    int checkCollision(Platform *platform);
+    bool seek(Platform *level, int numberOfPlatforms);
+    
+    void draw(SDL_Renderer *renderer);
+    
+private:
+    Player *_player;    // seeker origin
+    
+    double _angle;
+    
+    double _x;
+    double _y;
+    double _velocityX;
+    double _velocityY;
+};
 
 class Pivot {
 public:
@@ -50,6 +73,9 @@ public:
     double getCurrentLength();
     double getCurrentAngle();
     int collideCorners(Platform *level, int numPlatforms);
+    
+    void increaseSlack();
+    void decreaseSlack();
     
     bool update(Platform *level, int numPlatforms);
     void draw(SDL_Renderer *renderer);

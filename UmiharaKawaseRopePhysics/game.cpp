@@ -9,14 +9,17 @@ int numPlatforms = 0;
 
 bool gameInit() {
     level = new Platform[10];
-    numPlatforms = 1;
+    numPlatforms = 2;
     
     level[0].setPos(140, 80);
-    level[0].setWidth(64);
-    level[0].setHeight(32);
+    level[0].setWidth(128);
+    level[0].setHeight(48);
     
-    player.setPos(-100, -100);
-    player.createRope(200, 0);
+    level[1].setPos(32, 120);
+    level[1].setWidth(32);
+    level[1].setHeight(32);
+    
+    player.setPos(200, 0);
     
     return true;
 }

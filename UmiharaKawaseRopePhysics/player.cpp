@@ -1,7 +1,10 @@
 #include "player.hpp"
 
+const double JUMP_VELOCITY = 4;
+
 const double GRAVITY = 0.1;
 const double SWING_SLOWDOWN = 0.005;  // air resistance
+const double GROUND_FRICTION = 0.1;
 
 Player::Player() {
     _x = 0;
@@ -9,7 +12,11 @@ Player::Player() {
     _width = PLAYER_WIDTH;
     _height = PLAYER_HEIGHT;
     
+    _grappleSeeker = NULL;
     _rope = NULL;
+    
+    _grounded = false;
+    _facing = RIGHT;
 }
 
 double Player::getX() {
@@ -44,6 +51,15 @@ void Player::setPos(int x, int y) {
 void Player::stop() {
     _velocityX = 0;
     _velocityY = 0;
+}
+
+void Player::createGrappleSeeker(double angle) {
+    _grappleSeeker = new GrappleSeeker(this, angle);
+}
+
+void Player::destroyGrappleSeeker() {
+    delete _grappleSeeker;
+    _grappleSeeker = NULL;
 }
 
 void Player::createRope(int gX, int gY) {
@@ -125,12 +141,14 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
     _velocityY += GRAVITY;
     
     int collision = -1;
+    _grounded = false;
     for (int i = 0; i < numPlatforms; i++) {
         collision = checkCollision(level + i);
         switch (collision) {
             case UP:
                 _velocityY = 0;
                 _y = level[i].getY() - _width;
+                _grounded = true;
                 break;
             case DOWN:
                 _velocityY = 0;
@@ -149,7 +167,7 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
         }
     }
     
-    if (collision < 0) {
+    if (!_grounded && _rope) {
         if (_velocityX > 0) {
             _velocityX -= SWING_SLOWDOWN;
         } else if (_velocityX < 0) {
@@ -160,11 +178,64 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
     _x += _velocityX;
     _y += _velocityY;
     
-    if (_rope) {
-        _rope->update(level, numPlatforms);
+    if (_grappleSeeker) {
+        _grappleSeeker->addVelocityX(_velocityX);
+        _grappleSeeker->addVelocityY(_velocityY);
+    }
         
-        _velocityX += _rope->getAccelerationX();
-        _velocityY += _rope->getAccelerationY();
+    // rope create and destruction
+    if (keys[SDL_SCANCODE_X]) {
+        if (_rope) {
+            if (keys[SDL_SCANCODE_DOWN]) {
+                _rope->decreaseSlack();
+            }
+            
+            if (keys[SDL_SCANCODE_UP]) {
+                _rope->increaseSlack();
+            }
+            
+            _rope->update(level, numPlatforms);
+            
+            _velocityX += _rope->getAccelerationX();
+            _velocityY += _rope->getAccelerationY();
+        } else if (!_grappleSeeker) {
+            createGrappleSeeker(0);
+        }
+    } else {
+        if (_rope) {
+            destroyRope();
+        } else if (_grappleSeeker) {
+            destroyGrappleSeeker();
+        }
+    }
+    
+    // stuff that needs doing on the ground
+    if (_grounded) {
+        printf("Brah");
+        
+        // ground friction
+        if ((_velocityX < 0 && _velocityX > -GROUND_FRICTION) ||
+            (_velocityX > 0 && _velocityX < GROUND_FRICTION)) {
+            _velocityX = 0;
+        }
+        
+        if (_velocityX > 0) {
+            _velocityX -= GROUND_FRICTION;
+        } else if (_velocityX < 0) {
+            _velocityX += GROUND_FRICTION;
+        }
+        
+        // jump
+        if (keys[SDL_SCANCODE_C]) {
+            _velocityY -= JUMP_VELOCITY;
+        }
+    }
+    
+    // update the seeker
+    if (_grappleSeeker) {
+        if (_grappleSeeker->seek(level, numPlatforms)) {
+            destroyGrappleSeeker();
+        }
     }
     
     return true;
@@ -173,6 +244,8 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
 void Player::draw(SDL_Renderer *renderer) {
     if (_rope) {
         _rope->draw(renderer);
+    } else if (_grappleSeeker) {
+        _grappleSeeker->draw(renderer);
     }
     
     SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);

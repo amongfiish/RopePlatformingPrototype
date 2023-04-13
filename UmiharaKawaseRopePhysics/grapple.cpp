@@ -3,10 +3,152 @@
 #include "grapple.hpp"
 
 const double STRETCH_ACCELERATION = 0.01;
+const double SLACK_CHANGE_SPEED = 4;
+const double SEEK_SPEED = 4;
+
+const int GRAPPLE_RECT_HALF_WIDTH = 5;
 
 // from the internet. see definition at the bottom of this file.
 bool checkLineRectangleCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh);
 bool checkLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
+
+GrappleSeeker::GrappleSeeker(Player *player, double angle) {
+    _player = player;
+    
+    _angle = angle;
+    
+    _x = player->getX() + player->getWidth() / 2;
+    _y = player->getY() + player->getHeight() / 2;
+    _velocityX = SEEK_SPEED * cos(_angle);
+    _velocityY = SEEK_SPEED * sin(_angle);
+}
+
+void GrappleSeeker::addVelocityX(double vX) {
+    _velocityX += vX;
+}
+
+void GrappleSeeker::addVelocityY(double vY) {
+    _velocityY += vY;
+}
+
+int GrappleSeeker::checkCollision(Platform *p) {
+    bool wasAlignedX = false;
+    bool wasAlignedY = false;
+    bool alignedX = false;
+    bool alignedY = false;
+    
+    bool movingRight = false;
+    bool movingLeft = false;
+    bool movingUp = false;
+    bool movingDown = false;
+    
+    if (_y > p->getY() &&
+        _y < p->getY() + p->getHeight()) {
+        wasAlignedY = true;
+    }
+    
+    if (_y + _velocityY > p->getY() &&
+        _y + _velocityY < p->getY() + p->getHeight()) {
+        // player is aligned on y axis
+        alignedY = true;
+    }
+    
+    if (_x > p->getX() &&
+        _x < p->getX() + p->getWidth()) {
+        wasAlignedX = true;
+    }
+    
+    if (_x + _velocityX > p->getX() &&
+        _x + _velocityX < p->getX() + p->getWidth()) {
+        // player is aligned on x axis
+        alignedX = true;
+    }
+    
+    if (_velocityX > 0) {
+        // the player is moving right
+        movingRight = true;
+    } else if (_velocityX < 0) {
+        // the player is moving left
+        movingLeft = true;
+    }
+    
+    if (_velocityY > 0) {
+        // the player is moving down
+        movingDown = true;
+    } else if (_velocityY < 0) {
+        // the player is moving up
+        movingUp = true;
+    }
+    
+    if (alignedY && alignedX && !wasAlignedX) {
+        if (movingRight) {
+            return LEFT;
+        } else if (movingLeft) {
+            return RIGHT;
+        }
+    } else if (alignedX && alignedY && !wasAlignedY) {
+        if (movingDown) {
+            return UP;
+        } else if (movingUp) {
+            return DOWN;
+        }
+    }
+    
+    return -1;
+}
+
+bool GrappleSeeker::seek(Platform *level, int numberOfPlatforms) {
+    _x += _velocityX;
+    _y += _velocityY;
+    
+    for (int i = 0; i < numberOfPlatforms; i++) {
+        int collision = checkCollision(level + i);
+        switch (collision) {
+            case UP:
+                _player->createRope(_x, level[i].getY() - 1);
+                break;
+                
+            case DOWN:
+                _player->createRope(_x, level[i].getY() + level[i].getHeight());
+                break;
+                
+            case LEFT:
+                _player->createRope(level[i].getX() - 1, _y);
+                break;
+                
+            case RIGHT:
+                _player->createRope(level[i].getX() + level[i].getWidth(), _y);
+                break;
+                
+            default:
+                break;
+        }
+        
+        if (collision >= 0) {
+            return true;
+        }
+    }
+    
+    double seekerLength = sqrt(pow(_x - (_player->getX() + _player->getWidth() / 2), 2) + pow(_y - (_player->getY() + _player->getHeight()), 2));
+    if (seekerLength > MAX_ROPE_LENGTH) {
+        return true;
+    }
+    
+    _velocityX = SEEK_SPEED * cos(_angle);
+    _velocityY = SEEK_SPEED * sin(_angle);
+    
+    return false;
+}
+
+void GrappleSeeker::draw(SDL_Renderer *renderer) {
+    SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
+    SDL_RenderDrawLine(renderer, _player->getX() + _player->getWidth() / 2, _player->getY() + _player->getHeight() / 2, _x, _y);
+    
+    // square where the hook is
+    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
+    SDL_Rect grappleRect = { static_cast<int>(_x) - GRAPPLE_RECT_HALF_WIDTH, static_cast<int>(_y) - GRAPPLE_RECT_HALF_WIDTH, GRAPPLE_RECT_HALF_WIDTH * 2, GRAPPLE_RECT_HALF_WIDTH * 2 };
+    SDL_RenderFillRect(renderer, &grappleRect);
+}
 
 int Pivot::getX() {
     return _x;
@@ -227,7 +369,7 @@ int Rope::collideCorners(Platform *level, int numPlatforms) {
                 
                 _pivots[_numberOfPivots].setAttachAngle(atan2(diffY, diffX));
                 
-                printf("New X: %d, New Y: %d, New Attach Angle: %f\n", _pivots[_numberOfPivots].getX(), _pivots[_numberOfPivots].getY(), _pivots[_numberOfPivots].getAttachAngle());
+//                printf("New X: %d, New Y: %d, New Attach Angle: %f\n", _pivots[_numberOfPivots].getX(), _pivots[_numberOfPivots].getY(), _pivots[_numberOfPivots].getAttachAngle());
                 _numberOfPivots++;
             }
             
@@ -246,6 +388,20 @@ int Rope::collideCorners(Platform *level, int numPlatforms) {
     }
     
     return -1;
+}
+
+void Rope::increaseSlack() {
+    _ropeLength += SLACK_CHANGE_SPEED;
+    if (_ropeLength > MAX_ROPE_LENGTH) {
+        _ropeLength = MAX_ROPE_LENGTH;
+    }
+}
+
+void Rope::decreaseSlack() {
+    _ropeLength -= SLACK_CHANGE_SPEED;
+    if (_ropeLength < MIN_ROPE_LENGTH) {
+        _ropeLength = MIN_ROPE_LENGTH;
+    }
 }
 
 bool Rope::update(Platform *level, int numPlatforms) {
@@ -286,6 +442,11 @@ void Rope::draw(SDL_Renderer *renderer) {
     } else {
         SDL_RenderDrawLine(renderer, static_cast<int>(_player->getX() + _player->getWidth() / 2), static_cast<int>(_player->getY() + _player->getHeight() / 2), _grappleX, _grappleY);
     }
+    
+    // square where the hook is
+    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
+    SDL_Rect grappleRect = { _grappleX - GRAPPLE_RECT_HALF_WIDTH, _grappleY - GRAPPLE_RECT_HALF_WIDTH, GRAPPLE_RECT_HALF_WIDTH * 2, GRAPPLE_RECT_HALF_WIDTH * 2 };
+    SDL_RenderFillRect(renderer, &grappleRect);
 }
 
 // collision code from https://www.jeffreythompson.org/collision-detection/line-rect.php
