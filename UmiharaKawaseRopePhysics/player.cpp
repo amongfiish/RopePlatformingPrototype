@@ -131,27 +131,23 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
         _velocityY += _rope->getAccelerationY();
     }
     
-    bool collided = false;
+    int collision = -1;
     for (int i = 0; i < numPlatforms; i++) {
-        int collision = checkCollision(level + i);
+        collision = checkCollision(level + i);
         switch (collision) {
             case UP:
-                collided = true;
                 _velocityY = 0;
                 _y = level[i].getY() - _width;
                 break;
             case DOWN:
-                collided = true;
                 _velocityY = 0;
                 _y = level[i].getY() + level[i].getHeight();
                 break;
             case LEFT:
-                collided = true;
                 _velocityX = 0;
                 _x = level[i].getX() - _width;
                 break;
             case RIGHT:
-                collided = true;
                 _velocityX = 0;
                 _x = level[i].getX() + level[i].getWidth();
                 break;
@@ -160,7 +156,7 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
         }
     }
     
-    if (!collided) {
+    if (collision < 0) {
         if (_velocityX > 0) {
             _velocityX -= SWING_SLOWDOWN;
         } else if (_velocityX < 0) {
