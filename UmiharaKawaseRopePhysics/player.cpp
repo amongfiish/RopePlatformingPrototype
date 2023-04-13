@@ -2,9 +2,14 @@
 
 const double JUMP_VELOCITY = 4;
 
-const double GRAVITY = 0.1;
+const double GRAVITY = 0.2;
 const double SWING_SLOWDOWN = 0.005;  // air resistance
 const double GROUND_FRICTION = 0.1;
+
+const double AIR_ACCELERATION = 0.03;
+const double GROUND_ACCELERATION = 0.2;
+const double MAX_GROUND_VELOCITY = 2;
+const double MAX_AIR_VELOCITY = 2;
 
 Player::Player() {
     _x = 0;
@@ -167,6 +172,59 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
         }
     }
     
+    // fire direction (aim)
+    int aim = -1;
+    if (keys[SDL_SCANCODE_UP]) {
+        aim = UP;
+    }
+    if (keys[SDL_SCANCODE_DOWN]) {
+        aim = DOWN;
+    }
+    if (keys[SDL_SCANCODE_UP] && keys[SDL_SCANCODE_LEFT]) {
+        aim = UPLEFT;
+    }
+    if (keys[SDL_SCANCODE_UP] && keys[SDL_SCANCODE_RIGHT]) {
+        aim = UPRIGHT;
+    }
+    if (keys[SDL_SCANCODE_DOWN] && keys[SDL_SCANCODE_LEFT]) {
+        aim = DOWNLEFT;
+    }
+    if (keys[SDL_SCANCODE_DOWN] && keys[SDL_SCANCODE_RIGHT]) {
+        aim = DOWNRIGHT;
+    }
+    
+    // movement
+    if (aim < 0) {
+        if (_grounded) {
+            if (keys[SDL_SCANCODE_RIGHT]) {
+                if (_velocityX < MAX_GROUND_VELOCITY) {
+                    _velocityX += GROUND_ACCELERATION;
+                }
+                _facing = RIGHT;
+            }
+            if (keys[SDL_SCANCODE_LEFT]) {
+                if (_velocityX > -MAX_GROUND_VELOCITY) {
+                    _velocityX -= GROUND_ACCELERATION;
+                }
+                _facing = LEFT;
+            }
+        } else {
+            if (keys[SDL_SCANCODE_RIGHT]) {
+                if (_velocityX < MAX_AIR_VELOCITY) {
+                    _velocityX += AIR_ACCELERATION;
+                }
+                _facing = RIGHT;
+            }
+            if (keys[SDL_SCANCODE_LEFT]) {
+                if (_velocityX > -MAX_AIR_VELOCITY) {
+                    _velocityX -= AIR_ACCELERATION;
+                }
+                _facing = LEFT;
+            }
+        }
+    }
+    
+    // stuff that needs doing in the air
     if (!_grounded && _rope) {
         if (_velocityX > 0) {
             _velocityX -= SWING_SLOWDOWN;
@@ -175,44 +233,8 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
         }
     }
     
-    _x += _velocityX;
-    _y += _velocityY;
-    
-    if (_grappleSeeker) {
-        _grappleSeeker->addVelocityX(_velocityX);
-        _grappleSeeker->addVelocityY(_velocityY);
-    }
-        
-    // rope create and destruction
-    if (keys[SDL_SCANCODE_X]) {
-        if (_rope) {
-            if (keys[SDL_SCANCODE_DOWN]) {
-                _rope->decreaseSlack();
-            }
-            
-            if (keys[SDL_SCANCODE_UP]) {
-                _rope->increaseSlack();
-            }
-            
-            _rope->update(level, numPlatforms);
-            
-            _velocityX += _rope->getAccelerationX();
-            _velocityY += _rope->getAccelerationY();
-        } else if (!_grappleSeeker) {
-            createGrappleSeeker(0);
-        }
-    } else {
-        if (_rope) {
-            destroyRope();
-        } else if (_grappleSeeker) {
-            destroyGrappleSeeker();
-        }
-    }
-    
     // stuff that needs doing on the ground
     if (_grounded) {
-        printf("Brah");
-        
         // ground friction
         if ((_velocityX < 0 && _velocityX > -GROUND_FRICTION) ||
             (_velocityX > 0 && _velocityX < GROUND_FRICTION)) {
@@ -228,6 +250,58 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
         // jump
         if (keys[SDL_SCANCODE_C]) {
             _velocityY -= JUMP_VELOCITY;
+        }
+    }
+    
+    _x += _velocityX;
+    _y += _velocityY;
+    
+    if (_grappleSeeker) {
+        _grappleSeeker->addVelocityX(_velocityX);
+        _grappleSeeker->addVelocityY(_velocityY);
+    }
+        
+    // rope create and destruction
+    if (keys[SDL_SCANCODE_X]) {
+        if (_rope) {
+            if (aim == UP || aim == DOWN) {
+                if (keys[SDL_SCANCODE_DOWN]) {
+                    _rope->decreaseSlack();
+                }
+                
+                if (keys[SDL_SCANCODE_UP]) {
+                    _rope->increaseSlack();
+                }
+            }
+            
+            _rope->update(level, numPlatforms);
+            
+            _velocityX += _rope->getAccelerationX();
+            _velocityY += _rope->getAccelerationY();
+        } else if (!_grappleSeeker) {
+            if (aim == UPLEFT) {
+                createGrappleSeeker(-3 * M_PI_4);
+            } else if (aim == UP) {
+                createGrappleSeeker(-M_PI_2);
+            } else if (aim == UPRIGHT) {
+                createGrappleSeeker(-M_PI_4);
+            } else if (aim == DOWNLEFT) {
+                createGrappleSeeker(3 * M_PI_4);
+            } else if (aim == DOWN) {
+                createGrappleSeeker(M_PI_2);
+            } else if (aim == DOWNRIGHT) {
+                createGrappleSeeker(M_PI_4);
+            } else if (_facing == LEFT) {
+                createGrappleSeeker(M_PI);
+            } else if (_facing == RIGHT) {
+                createGrappleSeeker(0);
+            }
+        }
+    } else {
+        if (_rope) {
+            destroyRope();
+        } else if (_grappleSeeker) {
+            destroyGrappleSeeker();
         }
     }
     

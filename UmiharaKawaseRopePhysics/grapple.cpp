@@ -2,9 +2,9 @@
 
 #include "grapple.hpp"
 
-const double STRETCH_ACCELERATION = 0.01;
+const double STRETCH_ACCELERATION = 0.02;
 const double SLACK_CHANGE_SPEED = 4;
-const double SEEK_SPEED = 4;
+const double SEEK_SPEED = 8;
 
 const int GRAPPLE_RECT_HALF_WIDTH = 5;
 
@@ -105,19 +105,19 @@ bool GrappleSeeker::seek(Platform *level, int numberOfPlatforms) {
         int collision = checkCollision(level + i);
         switch (collision) {
             case UP:
-                _player->createRope(_x, level[i].getY() - 1);
+                _player->createRope(_x, level[i].getY() - 2);
                 break;
                 
             case DOWN:
-                _player->createRope(_x, level[i].getY() + level[i].getHeight());
+                _player->createRope(_x, level[i].getY() + level[i].getHeight() + 1);
                 break;
                 
             case LEFT:
-                _player->createRope(level[i].getX() - 1, _y);
+                _player->createRope(level[i].getX() - 2, _y);
                 break;
                 
             case RIGHT:
-                _player->createRope(level[i].getX() + level[i].getWidth(), _y);
+                _player->createRope(level[i].getX() + level[i].getWidth() + 1, _y);
                 break;
                 
             default:
