@@ -28,6 +28,14 @@ int Player::getHeight() {
     return _height;
 }
 
+double Player::getVelocityX() {
+    return _velocityX;
+}
+
+double Player::getVelocityY() {
+    return _velocityY;
+}
+
 void Player::setPos(int x, int y) {
     _x = x;
     _y = y;
@@ -117,17 +125,15 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
     _velocityY += GRAVITY;
     
     if (_rope) {
-        _rope->update();
+        _rope->update(level, numPlatforms);
         
-        printf("%f\n", _rope->getAccelerationX());
-        _velocityX -= _rope->getAccelerationX();
-        _velocityY -= _rope->getAccelerationY();
+        _velocityX += _rope->getAccelerationX();
+        _velocityY += _rope->getAccelerationY();
     }
     
     bool collided = false;
     for (int i = 0; i < numPlatforms; i++) {
         int collision = checkCollision(level + i);
-        printf("%d\n", collision);
         switch (collision) {
             case UP:
                 collided = true;

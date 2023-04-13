@@ -26,6 +26,8 @@ public:
     double getY();
     int getWidth();
     int getHeight();
+    double getVelocityX();
+    double getVelocityY();
     
     void setPos(int x, int y);
     void stop();

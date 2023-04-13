@@ -11,13 +11,12 @@ bool gameInit() {
     level = new Platform[10];
     numPlatforms = 1;
     
-    level[0].setPos(140, 100);
+    level[0].setPos(140, 80);
     level[0].setWidth(32);
     level[0].setHeight(32);
     
-    player.setPos(0, 95);
-    player.createRope(100, 0);
-    player.setPos(0, 100);
+    player.setPos(0, 200);
+    player.createRope(200, 0);
     
     return true;
 }
@@ -29,7 +28,7 @@ void gameCleanUp() {
 
 bool gameUpdate(const Uint8 *keys) {
     player.update(keys, level, numPlatforms);
-    
+        
     return true;
 }
 
