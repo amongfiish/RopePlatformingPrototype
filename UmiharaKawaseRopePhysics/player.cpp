@@ -125,17 +125,27 @@ int Player::checkCollision(Platform *p) {
         movingUp = true;
     }
     
-    if (alignedY && alignedX && !wasAlignedX) {
-        if (movingRight) {
-            return LEFT;
-        } else if (movingLeft) {
+    if (alignedX && alignedY && !wasAlignedX && !wasAlignedY) {
+        if (movingLeft) {
             return RIGHT;
+        } else if (movingRight) {
+            return LEFT;
+        } else if (movingUp) {
+            return DOWN;
+        } else if (movingDown) {
+            return UP;
         }
-    } else if (alignedX && alignedY && !wasAlignedY) {
+    } else if (alignedX && alignedY && !wasAlignedY && wasAlignedX) {
         if (movingDown) {
             return UP;
         } else if (movingUp) {
             return DOWN;
+        }
+    } else if (alignedY && alignedX && !wasAlignedX && wasAlignedY) {
+        if (movingRight) {
+            return LEFT;
+        } else if (movingLeft) {
+            return RIGHT;
         }
     }
     
@@ -144,33 +154,6 @@ int Player::checkCollision(Platform *p) {
 
 bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
     _velocityY += GRAVITY;
-    
-    int collision = -1;
-    _grounded = false;
-    for (int i = 0; i < numPlatforms; i++) {
-        collision = checkCollision(level + i);
-        switch (collision) {
-            case UP:
-                _velocityY = 0;
-                _y = level[i].getY() - _width;
-                _grounded = true;
-                break;
-            case DOWN:
-                _velocityY = 0;
-                _y = level[i].getY() + level[i].getHeight();
-                break;
-            case LEFT:
-                _velocityX = 0;
-                _x = level[i].getX() - _width;
-                break;
-            case RIGHT:
-                _velocityX = 0;
-                _x = level[i].getX() + level[i].getWidth();
-                break;
-            default:
-                break;
-        }
-    }
     
     // fire direction (aim)
     int aim = -1;
@@ -250,6 +233,33 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
         // jump
         if (keys[SDL_SCANCODE_C]) {
             _velocityY -= JUMP_VELOCITY;
+        }
+    }
+    
+    int collision = -1;
+    _grounded = false;
+    for (int i = 0; i < numPlatforms; i++) {
+        collision = checkCollision(level + i);
+        switch (collision) {
+            case UP:
+                _velocityY = 0;
+                _y = level[i].getY() - _width;
+                _grounded = true;
+                break;
+            case DOWN:
+                _velocityY = 0;
+                _y = level[i].getY() + level[i].getHeight();
+                break;
+            case LEFT:
+                _velocityX = 0;
+                _x = level[i].getX() - _width;
+                break;
+            case RIGHT:
+                _velocityX = 0;
+                _x = level[i].getX() + level[i].getWidth();
+                break;
+            default:
+                break;
         }
     }
     
