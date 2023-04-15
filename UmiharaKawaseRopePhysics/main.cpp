@@ -1,0 +1,109 @@
+#include <SDL.h>
+#undef main
+#include <cstdio>
+
+#include "game.hpp"
+#include "controls.hpp"
+using namespace std;
+
+KeyboardLayout defaultLayout;
+KeyboardLayout *activeKeyboardLayout = NULL;
+
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
+
+const int WINDOW_WIDTH = 600;
+const int WINDOW_HEIGHT = 400;
+
+const int FPS = 60;
+
+bool init();
+void cleanUp();
+
+int main(int argc, const char * argv[]) {
+    if (!init() || !gameInit()) {
+        cleanUp();
+        return -1;
+    }
+    
+    SDL_Event e;
+    bool running = true;
+    while (running) {
+        Uint32 startTicks = SDL_GetTicks();
+        
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                running = false;
+            }
+        }
+        
+        // update
+        const Uint8 *keys = SDL_GetKeyboardState(NULL);
+        activeKeyboardLayout->update(keys);
+        
+        gameUpdate(activeKeyboardLayout);
+        
+        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+        SDL_RenderClear(renderer);
+        
+        // draw
+        gameDraw(renderer);
+        
+        SDL_RenderPresent(renderer);
+        
+        Uint32 elapsedTicks = SDL_GetTicks() - startTicks;
+        if (elapsedTicks < 1000.0 / FPS) {
+            SDL_Delay(static_cast<Uint32>(1000.0 / FPS - elapsedTicks));
+        }
+    }
+    
+    cleanUp();
+    return 0;
+}
+
+bool init() {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("Couldn't initialize SDL. Error: %s\n", SDL_GetError());
+        return false;
+    }
+    
+    window = SDL_CreateWindow("Umihara", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    if (window == NULL) {
+        printf("Couldn't create window. Error: %s\n", SDL_GetError());
+        return false;
+    }
+    
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL) {
+        printf("Couldn't create renderer. Error: %s\n", SDL_GetError());
+        return false;
+    }
+    
+    defaultLayout.setUp(SDL_SCANCODE_UP);
+    defaultLayout.setDown(SDL_SCANCODE_DOWN);
+    defaultLayout.setLeft(SDL_SCANCODE_LEFT);
+    defaultLayout.setRight(SDL_SCANCODE_RIGHT);
+    
+    defaultLayout.setConfirm(SDL_SCANCODE_C);
+    defaultLayout.setBack(SDL_SCANCODE_X);
+    defaultLayout.setPause(SDL_SCANCODE_ESCAPE);
+    
+    defaultLayout.setJump(SDL_SCANCODE_C);
+    defaultLayout.setGrapple(SDL_SCANCODE_X);
+    defaultLayout.setAirBlast(SDL_SCANCODE_C);
+    
+    activeKeyboardLayout = &defaultLayout;
+    
+    return true;
+}
+
+void cleanUp() {
+    gameCleanUp();
+    
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    renderer = NULL;
+    window = NULL;
+    
+    SDL_Quit();
+}
