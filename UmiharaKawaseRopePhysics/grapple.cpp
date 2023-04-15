@@ -97,27 +97,27 @@ int GrappleSeeker::checkCollision(Platform *p) {
     return -1;
 }
 
-bool GrappleSeeker::seek(Platform *level, int numberOfPlatforms) {
+bool GrappleSeeker::seek(Level *level) {
     _x += _velocityX;
     _y += _velocityY;
     
-    for (int i = 0; i < numberOfPlatforms; i++) {
-        int collision = checkCollision(level + i);
+    for (int i = 0; i < level->getNumberOfPlatforms(); i++) {
+        int collision = checkCollision(level->getPlatform(i));
         switch (collision) {
             case UP:
-                _player->createRope(_x, level[i].getY() - 2);
+                _player->createRope(_x, level->getPlatform(i)->getY() - 2);
                 break;
                 
             case DOWN:
-                _player->createRope(_x, level[i].getY() + level[i].getHeight() + 1);
+                _player->createRope(_x, level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
                 break;
                 
             case LEFT:
-                _player->createRope(level[i].getX() - 2, _y);
+                _player->createRope(level->getPlatform(i)->getX() - 2, _y);
                 break;
                 
             case RIGHT:
-                _player->createRope(level[i].getX() + level[i].getWidth() + 1, _y);
+                _player->createRope(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1, _y);
                 break;
                 
             default:
@@ -190,6 +190,7 @@ double Pivot::getAttachAngle() {
     return _attachAngle;
 }
 
+// might need a deconstructor which deletes _pivots to prevent memory leakage
 Rope::Rope(Player *p, int gX, int gY) {
     _player = p;
     
@@ -204,6 +205,10 @@ Rope::Rope(Player *p, int gX, int gY) {
     _pivots = new Pivot[10];
     _numberOfPivots = 0;
     _pivotsCapacity = 10;
+}
+
+Rope::~Rope() {
+    delete[] _pivots;
 }
 
 double Rope::getAccelerationX() {
@@ -268,7 +273,7 @@ double Rope::getCurrentAngle() {
     return atan2(diffY, diffX);
 }
 
-int Rope::collideCorners(Platform *level, int numPlatforms) {
+int Rope::collideCorners(Level *level) {
     double diffX;
     double diffY;
     
@@ -281,7 +286,7 @@ int Rope::collideCorners(Platform *level, int numPlatforms) {
         diffY = _grappleY - (_player->getY() + _player->getHeight() / 2);
     }
 
-    for (int i = 0; i < numPlatforms; i++) {
+    for (int i = 0; i < level->getNumberOfPlatforms(); i++) {
         double x1, y1, x2, y2;
         double rx, ry, rw, rh;
         
@@ -296,10 +301,10 @@ int Rope::collideCorners(Platform *level, int numPlatforms) {
         x2 = _player->getX() + _player->getWidth() / 2;
         y2 = _player->getY() + _player->getHeight() / 2;
         
-        rx = level[i].getX();
-        ry = level[i].getY();
-        rw = level[i].getWidth();
-        rh = level[i].getHeight();
+        rx = level->getPlatform(i)->getX();
+        ry = level->getPlatform(i)->getY();
+        rw = level->getPlatform(i)->getWidth();
+        rh = level->getPlatform(i)->getHeight();
         
         if (checkLineRectangleCollision(x1, y1, x2, y2, rx, ry, rw, rh)) {
             // collision
@@ -329,31 +334,31 @@ int Rope::collideCorners(Platform *level, int numPlatforms) {
                     // up/left and down/right
                     if (direction == UP || direction == RIGHT) {
                         // moving 'right'
-                        _pivots[_numberOfPivots].setX(level[i].getX() - 2);
-                        _pivots[_numberOfPivots].setY(level[i].getY() + level[i].getHeight() + 1);
-                        _pivots[_numberOfPivots].setDrawX(level[i].getX() - 1);
-                        _pivots[_numberOfPivots].setDrawY(level[i].getY() + level[i].getHeight());
+                        _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
+                        _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
+                        _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
+                        _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
                     } else if (direction == DOWN || direction == LEFT) {
                         // moving 'left'
-                        _pivots[_numberOfPivots].setX(level[i].getX() + level[i].getWidth() + 1);
-                        _pivots[_numberOfPivots].setY(level[i].getY() - 2);
-                        _pivots[_numberOfPivots].setDrawX(level[i].getX() + level[i].getWidth());
-                        _pivots[_numberOfPivots].setDrawY(level[i].getY() - 1);
+                        _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
+                        _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
+                        _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth());
+                        _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
                     }
                 } else if ((_angle > M_PI_2) || (_angle > -M_PI_2 && _angle < 0)) {
                     // up/right and down/left
                     if (direction == DOWN || direction == RIGHT) {
                         // moving 'right'
-                        _pivots[_numberOfPivots].setX(level[i].getX() - 2);
-                        _pivots[_numberOfPivots].setY(level[i].getY() - 2);
-                        _pivots[_numberOfPivots].setDrawX(level[i].getX() - 1);
-                        _pivots[_numberOfPivots].setDrawY(level[i].getY() - 1);
+                        _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
+                        _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
+                        _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
+                        _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
                     } else if (direction == UP || direction == LEFT) {
                         // moving 'left'
-                        _pivots[_numberOfPivots].setX(level[i].getX() + level[i].getWidth() + 1);
-                        _pivots[_numberOfPivots].setY(level[i].getY() + level[i].getHeight() + 1);
-                        _pivots[_numberOfPivots].setDrawX(level[i].getX() + level[i].getWidth());
-                        _pivots[_numberOfPivots].setDrawY(level[i].getY() + level[i].getHeight());
+                        _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
+                        _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
+                        _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth());
+                        _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
                     }
                 }
                 
@@ -404,7 +409,7 @@ void Rope::decreaseSlack() {
     }
 }
 
-bool Rope::update(Platform *level, int numPlatforms) {
+bool Rope::update(Level *level) {
     _previousAngle = _angle;
     _angle = getCurrentAngle();
     _stretch = getCurrentLength() - _ropeLength;
@@ -425,7 +430,7 @@ bool Rope::update(Platform *level, int numPlatforms) {
             _numberOfPivots--;
         }
     }
-    collideCorners(level, numPlatforms);
+    collideCorners(level);
     
     return true;
 }

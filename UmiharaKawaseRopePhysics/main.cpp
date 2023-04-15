@@ -2,7 +2,11 @@
 #include <SDL2/SDL.h>
 
 #include "game.hpp"
+#include "controls.hpp"
 using namespace std;
+
+KeyboardLayout defaultLayout;
+KeyboardLayout *activeKeyboardLayout = NULL;
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
@@ -34,8 +38,9 @@ int main(int argc, const char * argv[]) {
         
         // update
         const Uint8 *keys = SDL_GetKeyboardState(NULL);
+        activeKeyboardLayout->update(keys);
         
-        gameUpdate(keys);
+        gameUpdate(activeKeyboardLayout);
         
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(renderer);
@@ -72,6 +77,21 @@ bool init() {
         printf("Couldn't create renderer. Error: %s\n", SDL_GetError());
         return false;
     }
+    
+    defaultLayout.setUp(SDL_SCANCODE_UP);
+    defaultLayout.setDown(SDL_SCANCODE_DOWN);
+    defaultLayout.setLeft(SDL_SCANCODE_LEFT);
+    defaultLayout.setRight(SDL_SCANCODE_RIGHT);
+    
+    defaultLayout.setConfirm(SDL_SCANCODE_C);
+    defaultLayout.setBack(SDL_SCANCODE_X);
+    defaultLayout.setPause(SDL_SCANCODE_ESCAPE);
+    
+    defaultLayout.setJump(SDL_SCANCODE_C);
+    defaultLayout.setGrapple(SDL_SCANCODE_X);
+    defaultLayout.setAirBlast(SDL_SCANCODE_C);
+    
+    activeKeyboardLayout = &defaultLayout;
     
     return true;
 }

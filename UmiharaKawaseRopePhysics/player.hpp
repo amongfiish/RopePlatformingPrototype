@@ -5,6 +5,7 @@
 
 #include "level.hpp"
 #include "grapple.hpp"
+#include "controls.hpp"
 
 const int PLAYER_WIDTH = 32;
 const int PLAYER_HEIGHT = 32;
@@ -43,7 +44,7 @@ public:
     void createRope(int gX, int gY);
     void destroyRope();
     
-    bool update(const Uint8 *keys, Platform *level, int numPlatforms);
+    bool update(KeyboardLayout *keys, Level *level);
     void draw(SDL_Renderer *renderer);
     
     int checkCollision(Platform *p);
@@ -59,6 +60,8 @@ private:
     
     bool _grounded;
     int _facing;
+    
+    bool _canAirBlast;
     
     GrappleSeeker *_grappleSeeker;
     Rope *_rope;

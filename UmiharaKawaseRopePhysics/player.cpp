@@ -1,6 +1,8 @@
 #include "player.hpp"
 
 const double JUMP_VELOCITY = 4;
+const double AIR_BLAST_VELOCITY_X = 2;
+const double AIR_BLAST_VELOCITY_Y = 4;
 
 const double GRAVITY = 0.2;
 const double SWING_SLOWDOWN = 0.005;  // air resistance
@@ -10,6 +12,8 @@ const double AIR_ACCELERATION = 0.03;
 const double GROUND_ACCELERATION = 0.2;
 const double MAX_GROUND_VELOCITY = 2;
 const double MAX_AIR_VELOCITY = 2;
+
+const int LEVEL_BOTTOM = 500;
 
 Player::Player() {
     _x = 0;
@@ -22,6 +26,8 @@ Player::Player() {
     
     _grounded = false;
     _facing = RIGHT;
+    
+    _canAirBlast = false;
 }
 
 double Player::getX() {
@@ -152,53 +158,53 @@ int Player::checkCollision(Platform *p) {
     return -1;
 }
 
-bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
+bool Player::update(KeyboardLayout *keys, Level *level) {
     _velocityY += GRAVITY;
     
     // fire direction (aim)
     int aim = -1;
-    if (keys[SDL_SCANCODE_UP]) {
+    if (keys->getUpState() != NONE) {
         aim = UP;
     }
-    if (keys[SDL_SCANCODE_DOWN]) {
+    if (keys->getDownState() != NONE) {
         aim = DOWN;
     }
-    if (keys[SDL_SCANCODE_UP] && keys[SDL_SCANCODE_LEFT]) {
+    if (keys->getUpState() != NONE && keys->getLeftState() != NONE) {
         aim = UPLEFT;
     }
-    if (keys[SDL_SCANCODE_UP] && keys[SDL_SCANCODE_RIGHT]) {
+    if (keys->getUpState() != NONE && keys->getRightState() != NONE) {
         aim = UPRIGHT;
     }
-    if (keys[SDL_SCANCODE_DOWN] && keys[SDL_SCANCODE_LEFT]) {
+    if (keys->getDownState() != NONE && keys->getLeftState() != NONE) {
         aim = DOWNLEFT;
     }
-    if (keys[SDL_SCANCODE_DOWN] && keys[SDL_SCANCODE_RIGHT]) {
+    if (keys->getDownState() != NONE && keys->getRightState() != NONE) {
         aim = DOWNRIGHT;
     }
     
     // movement
     if (aim < 0) {
         if (_grounded) {
-            if (keys[SDL_SCANCODE_RIGHT]) {
+            if (keys->getRightState() != NONE) {
                 if (_velocityX < MAX_GROUND_VELOCITY) {
                     _velocityX += GROUND_ACCELERATION;
                 }
                 _facing = RIGHT;
             }
-            if (keys[SDL_SCANCODE_LEFT]) {
+            if (keys->getLeftState() != NONE) {
                 if (_velocityX > -MAX_GROUND_VELOCITY) {
                     _velocityX -= GROUND_ACCELERATION;
                 }
                 _facing = LEFT;
             }
         } else {
-            if (keys[SDL_SCANCODE_RIGHT]) {
+            if (keys->getRightState() != NONE) {
                 if (_velocityX < MAX_AIR_VELOCITY) {
                     _velocityX += AIR_ACCELERATION;
                 }
                 _facing = RIGHT;
             }
-            if (keys[SDL_SCANCODE_LEFT]) {
+            if (keys->getLeftState() != NONE) {
                 if (_velocityX > -MAX_AIR_VELOCITY) {
                     _velocityX -= AIR_ACCELERATION;
                 }
@@ -216,8 +222,48 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
         }
     }
     
+    // jump and air blast
+    if (keys->getJumpState() == PRESSED && _grounded) {
+        _velocityY -= JUMP_VELOCITY;
+    } else if (keys->getAirBlastState() == PRESSED && !_grounded && _canAirBlast && !_rope) {
+        _canAirBlast = false;
+        switch (aim) {
+            case UPLEFT:
+                _velocityX += AIR_BLAST_VELOCITY_X;
+                _velocityY += AIR_BLAST_VELOCITY_Y;
+                break;
+            case UP:
+                _velocityY += AIR_BLAST_VELOCITY_Y;
+                break;
+            case UPRIGHT:
+                _velocityX -= AIR_BLAST_VELOCITY_X;
+                _velocityY += AIR_BLAST_VELOCITY_Y;
+                break;
+            case DOWNLEFT:
+                _velocityX += AIR_BLAST_VELOCITY_X;
+                _velocityY -= AIR_BLAST_VELOCITY_Y;
+                break;
+            case DOWN:
+                _velocityY -= AIR_BLAST_VELOCITY_Y;
+                break;
+            case DOWNRIGHT:
+                _velocityX -= AIR_BLAST_VELOCITY_X;
+                _velocityY -= AIR_BLAST_VELOCITY_Y;
+                break;
+            default:
+                if (_facing == LEFT) {
+                    _velocityX += AIR_BLAST_VELOCITY_X;
+                } else if (_facing == RIGHT) {
+                    _velocityX -= AIR_BLAST_VELOCITY_X;
+                }
+                break;
+        }
+    }
+    
     // stuff that needs doing on the ground
     if (_grounded) {
+        _canAirBlast = true;
+        
         // ground friction
         if ((_velocityX < 0 && _velocityX > -GROUND_FRICTION) ||
             (_velocityX > 0 && _velocityX < GROUND_FRICTION)) {
@@ -229,34 +275,29 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
         } else if (_velocityX < 0) {
             _velocityX += GROUND_FRICTION;
         }
-        
-        // jump
-        if (keys[SDL_SCANCODE_C]) {
-            _velocityY -= JUMP_VELOCITY;
-        }
     }
     
     int collision = -1;
     _grounded = false;
-    for (int i = 0; i < numPlatforms; i++) {
-        collision = checkCollision(level + i);
+    for (int i = 0; i < level->getNumberOfPlatforms(); i++) {
+        collision = checkCollision(level->getPlatform(i));
         switch (collision) {
             case UP:
                 _velocityY = 0;
-                _y = level[i].getY() - _width;
+                _y = level->getPlatform(i)->getY() - _width;
                 _grounded = true;
                 break;
             case DOWN:
                 _velocityY = 0;
-                _y = level[i].getY() + level[i].getHeight();
+                _y = level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight();
                 break;
             case LEFT:
                 _velocityX = 0;
-                _x = level[i].getX() - _width;
+                _x = level->getPlatform(i)->getX() - _width;
                 break;
             case RIGHT:
                 _velocityX = 0;
-                _x = level[i].getX() + level[i].getWidth();
+                _x = level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth();
                 break;
             default:
                 break;
@@ -272,23 +313,24 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
     }
         
     // rope create and destruction
-    if (keys[SDL_SCANCODE_X]) {
+    if (keys->getGrappleState() != NONE) {
         if (_rope) {
             if (aim == UP || aim == DOWN) {
-                if (keys[SDL_SCANCODE_DOWN]) {
+                if (keys->getDownState() != NONE) {
                     _rope->decreaseSlack();
                 }
                 
-                if (keys[SDL_SCANCODE_UP]) {
+                if (keys->getUpState() != NONE) {
                     _rope->increaseSlack();
                 }
             }
             
-            _rope->update(level, numPlatforms);
+            _rope->update(level);
+            _canAirBlast = true;
             
             _velocityX += _rope->getAccelerationX();
             _velocityY += _rope->getAccelerationY();
-        } else if (!_grappleSeeker) {
+        } else if (!_grappleSeeker && keys->getGrappleState() == PRESSED) {
             if (aim == UPLEFT) {
                 createGrappleSeeker(-3 * M_PI_4);
             } else if (aim == UP) {
@@ -317,7 +359,19 @@ bool Player::update(const Uint8 *keys, Platform *level, int numPlatforms) {
     
     // update the seeker
     if (_grappleSeeker) {
-        if (_grappleSeeker->seek(level, numPlatforms)) {
+        if (_grappleSeeker->seek(level)) {
+            destroyGrappleSeeker();
+        }
+    }
+    
+    if (_y > LEVEL_BOTTOM) {
+        _x = level->getStartX();
+        _y = level->getStartY();
+        stop();
+        
+        if (_rope) {
+            destroyRope();
+        } else if (_grappleSeeker) {
             destroyGrappleSeeker();
         }
     }

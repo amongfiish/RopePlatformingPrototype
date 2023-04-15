@@ -13,6 +13,7 @@
 		94E676B229DE6F910083EFA0 /* grapple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676B029DE6F910083EFA0 /* grapple.cpp */; };
 		94E676B529DE70D50083EFA0 /* level.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676B329DE70D50083EFA0 /* level.cpp */; };
 		94E676B829DE74A00083EFA0 /* player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676B629DE74A00083EFA0 /* player.cpp */; };
+		94E676BB29EA64EB0083EFA0 /* controls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 94E676B929EA64EB0083EFA0 /* controls.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,6 +40,8 @@
 		94E676B429DE70D50083EFA0 /* level.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = level.hpp; sourceTree = "<group>"; };
 		94E676B629DE74A00083EFA0 /* player.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = player.cpp; sourceTree = "<group>"; };
 		94E676B729DE74A00083EFA0 /* player.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = player.hpp; sourceTree = "<group>"; };
+		94E676B929EA64EB0083EFA0 /* controls.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = controls.cpp; sourceTree = "<group>"; };
+		94E676BA29EA64EB0083EFA0 /* controls.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = controls.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +85,8 @@
 				94E676B429DE70D50083EFA0 /* level.hpp */,
 				94E676B629DE74A00083EFA0 /* player.cpp */,
 				94E676B729DE74A00083EFA0 /* player.hpp */,
+				94E676B929EA64EB0083EFA0 /* controls.cpp */,
+				94E676BA29EA64EB0083EFA0 /* controls.hpp */,
 			);
 			path = UmiharaKawaseRopePhysics;
 			sourceTree = "<group>";
@@ -156,6 +161,7 @@
 				94E676A429DD39760083EFA0 /* main.cpp in Sources */,
 				94E676B529DE70D50083EFA0 /* level.cpp in Sources */,
 				94E676AF29DD459F0083EFA0 /* game.cpp in Sources */,
+				94E676BB29EA64EB0083EFA0 /* controls.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -57,3 +57,68 @@ void Platform::draw(SDL_Renderer *renderer) {
     SDL_Rect rect = { _x, _y, _width, _height };
     SDL_RenderFillRect(renderer, &rect);
 }
+
+Level::Level() {
+    _platforms = new Platform[10];
+    _numberOfPlatforms = 0;
+    _platformsCapacity = 10;
+}
+
+Level::~Level() {
+    delete[] _platforms;
+}
+
+int Level::getStartX() {
+    return _startX;
+}
+
+int Level::getStartY() {
+    return _startY;
+}
+
+void Level::setStartPos(int x, int y) {
+    _startX = x;
+    _startY = y;
+}
+
+void Level::addPlatform(int x, int y, int w, int h) {
+    _platforms[_numberOfPlatforms].setX(x);
+    _platforms[_numberOfPlatforms].setY(y);
+    _platforms[_numberOfPlatforms].setWidth(w);
+    _platforms[_numberOfPlatforms].setHeight(h);
+    
+    _numberOfPlatforms++;
+    
+    if (_numberOfPlatforms >= _platformsCapacity) {
+        _platformsCapacity *= 2;
+        
+        Platform *newPlatforms = new Platform[_platformsCapacity];
+        for (int i = 0; i < _numberOfPlatforms; i++) {
+            newPlatforms[i].setX(_platforms[i].getX());
+            newPlatforms[i].setY(_platforms[i].getY());
+            newPlatforms[i].setWidth(_platforms[i].getWidth());
+            newPlatforms[i].setHeight(_platforms[i].getHeight());
+        }
+        delete[] _platforms;
+        
+        _platforms = newPlatforms;
+    }
+}
+
+Platform *Level::getPlatform(int i) {
+    if (i >= 0 && i < _numberOfPlatforms) {
+        return _platforms + i;
+    }
+    
+    return NULL;
+}
+
+int Level::getNumberOfPlatforms() {
+    return _numberOfPlatforms;
+}
+
+void Level::draw(SDL_Renderer *renderer) {
+    for (int i = 0; i < _numberOfPlatforms; i++) {
+        _platforms[i].draw(renderer);
+    }
+}

@@ -29,4 +29,29 @@ private:
     int _height;
 };
 
+class Level {
+public:
+    Level();
+    ~Level();
+    
+    int getStartX();
+    int getStartY();
+    void setStartPos(int x, int y);
+    
+    void addPlatform(int x, int y, int w, int h);
+    Platform *getPlatform(int i);
+    
+    int getNumberOfPlatforms();
+    
+    void draw(SDL_Renderer *renderer);
+    
+private:
+    int _startX;
+    int _startY;
+    
+    Platform *_platforms;
+    int _numberOfPlatforms;
+    int _platformsCapacity;
+};
+
 #endif

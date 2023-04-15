@@ -24,7 +24,7 @@ public:
     void addVelocityY(double y);
     
     int checkCollision(Platform *platform);
-    bool seek(Platform *level, int numberOfPlatforms);
+    bool seek(Level *level);
     
     void draw(SDL_Renderer *renderer);
     
@@ -66,18 +66,19 @@ private:
 class Rope {
 public:
     Rope(Player *p, int gX, int gY);
+    ~Rope();
     
     double getAccelerationX();
     double getAccelerationY();
     
     double getCurrentLength();
     double getCurrentAngle();
-    int collideCorners(Platform *level, int numPlatforms);
+    int collideCorners(Level *level);
     
     void increaseSlack();
     void decreaseSlack();
     
-    bool update(Platform *level, int numPlatforms);
+    bool update(Level *level);
     void draw(SDL_Renderer *renderer);
     
 private:
