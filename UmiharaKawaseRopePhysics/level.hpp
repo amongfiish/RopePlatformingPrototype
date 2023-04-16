@@ -7,7 +7,6 @@
 
 #ifdef _WIN64
 #include <SDL.h>
-#define main
 #endif
 
 class Platform {
