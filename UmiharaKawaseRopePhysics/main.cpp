@@ -6,7 +6,6 @@
 
 #ifdef _WIN64
 #include <SDL.h>
-#undef main
 #endif
 
 #include "game.hpp"
