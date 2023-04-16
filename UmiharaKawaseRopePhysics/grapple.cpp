@@ -9,9 +9,11 @@ const double RETRACT_SPEED = 12;
 
 const int GRAPPLE_RECT_HALF_WIDTH = 5;
 
-// from the internet. see definition at the bottom of this file.
-CollisionReportContainer *checkLineRectangleCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh);
-CollisionReport *checkLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
+// from the internet. see definition at the bottom of this file (modified)
+CollisionReportContainer *getLineRectangleCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh);
+CollisionReport *getLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
+bool checkLineRectCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh);
+bool checkLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
 
 CollisionReport::CollisionReport() {
     _intersectionX = 0;
@@ -105,9 +107,7 @@ bool GrappleSeeker::collide(Platform *p) {
     float rw = p->getWidth();
     float rh = p->getHeight();
     
-    printf("x1: %f, y1: %f, x2: %f, y2: %f, rx: %f, ry: %f, rw: %f, rh: %f\n", x1, y1, x2, y2, rx, ry, rw, rh);
-    
-    CollisionReportContainer *collisions = checkLineRectangleCollision(x1, y1, x2, y2, rx, ry, rw, rh);
+    CollisionReportContainer *collisions = getLineRectangleCollision(x1, y1, x2, y2, rx, ry, rw, rh);
     if (collisions->getNumberOfReports() == 0) {
         delete collisions;
         return false;
@@ -134,6 +134,7 @@ bool GrappleSeeker::collide(Platform *p) {
     }
     
     _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY());
+    printf("cX: %f, cY: %f\n", closestCollision->getIntersectionX(), closestCollision->getIntersectionY());
     
     delete collisions;
     return true;
@@ -331,7 +332,7 @@ int Rope::collideCorners(Level *level) {
         rw = level->getPlatform(i)->getWidth();
         rh = level->getPlatform(i)->getHeight();
         
-        if (checkLineRectangleCollision(x1, y1, x2, y2, rx, ry, rw, rh)) {
+        if (checkLineRectCollision(x1, y1, x2, y2, rx, ry, rw, rh)) {
             // collision
             int direction = -1;
             if ((_angle >= -M_PI && _angle <= -M_PI_4 && _previousAngle <= M_PI && _previousAngle >= M_PI_4) ||
@@ -479,43 +480,41 @@ void Rope::draw(SDL_Renderer *renderer) {
     SDL_RenderFillRect(renderer, &grappleRect);
 }
 
-// collision code from https://www.jeffreythompson.org/collision-detection/line-rect.php
-CollisionReportContainer *checkLineRectangleCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh) {
+// collision code from https://www.jeffreythompson.org/collision-detection/line-rect.php (modified)
+CollisionReportContainer *getLineRectangleCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh) {
     CollisionReportContainer *newContainer = new CollisionReportContainer();
     
     // check if the line has hit any of the rectangle's sides
     // uses the Line/Line function below
-    CollisionReport *leftCollisionReport = checkLineCollision(x1,y1,x2,y2, rx,ry,rx, ry+rh);
+    CollisionReport *leftCollisionReport = getLineCollision(x1,y1,x2,y2, rx,ry,rx, ry+rh);
     if (leftCollisionReport) {
         newContainer->addReport(leftCollisionReport->getIntersectionX(), leftCollisionReport->getIntersectionY());
         delete leftCollisionReport;
     }
     
-    CollisionReport *rightCollisionReport = checkLineCollision(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh);
+    CollisionReport *rightCollisionReport = getLineCollision(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh);
     if (rightCollisionReport) {
         newContainer->addReport(rightCollisionReport->getIntersectionX(), rightCollisionReport->getIntersectionY());
         delete rightCollisionReport;
     }
     
-    CollisionReport *topCollisionReport = checkLineCollision(x1,y1,x2,y2, rx,ry, rx+rw,ry);
+    CollisionReport *topCollisionReport = getLineCollision(x1,y1,x2,y2, rx,ry, rx+rw,ry);
     if (topCollisionReport) {
         newContainer->addReport(topCollisionReport->getIntersectionX(), topCollisionReport->getIntersectionY());
         delete topCollisionReport;
     }
     
-    CollisionReport *bottomCollisionReport = checkLineCollision(x1,y1,x2,y2, rx,ry+rh, rx+rw,ry+rh);
+    CollisionReport *bottomCollisionReport = getLineCollision(x1,y1,x2,y2, rx,ry+rh, rx+rw,ry+rh);
     if (bottomCollisionReport) {
         newContainer->addReport(bottomCollisionReport->getIntersectionX(), bottomCollisionReport->getIntersectionY());
         delete bottomCollisionReport;
     }
 
-    // if ANY of the above are true, the line
-    // has hit the rectangle
     return newContainer;
 }
 
 
-CollisionReport *checkLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {
+CollisionReport *getLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {
     // calculate the direction of the lines
     float uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
     float uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
@@ -529,4 +528,34 @@ CollisionReport *checkLineCollision(float x1, float y1, float x2, float y2, floa
     }
     
     return NULL;
+}
+
+bool checkLineRectCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh) {
+
+  // check if the line has hit any of the rectangle's sides
+  // uses the Line/Line function below
+  bool left = checkLineCollision(x1,y1,x2,y2, rx,ry,rx, ry+rh);
+  bool right = checkLineCollision(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh);
+  bool top = checkLineCollision(x1,y1,x2,y2, rx,ry, rx+rw,ry);
+  bool bottom = checkLineCollision(x1,y1,x2,y2, rx,ry+rh, rx+rw,ry+rh);
+
+  // if ANY of the above are true, the line
+  // has hit the rectangle
+  if (left || right || top || bottom) {
+    return true;
+  }
+  return false;
+}
+
+bool checkLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {
+  // calculate the direction of the lines
+  float uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+  float uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+
+  // if uA and uB are between 0-1, lines are colliding
+  if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+    return true;
+  }
+    
+  return false;
 }
