@@ -53,6 +53,7 @@ CollisionReportContainer::~CollisionReportContainer() {
 
 void CollisionReportContainer::addReport(float x, float y) {
     _reports[_numberOfReports].setIntersectionX(x);
+    _reports[_numberOfReports].setIntersectionY(y);
     
     _numberOfReports++;
     if (_numberOfReports >= _reportsCapacity) {
@@ -97,8 +98,8 @@ void GrappleSeeker::addVelocityY(double vY) {
 }
 
 bool GrappleSeeker::collide(Platform *p) {
-    float x1 = _x;
-    float y1 = _y;
+    float x1 = _x - _player->getVelocityX();
+    float y1 = _y - _player->getVelocityY();
     float x2 = _x + _velocityX;
     float y2 = _y + _velocityY;
     
@@ -133,8 +134,17 @@ bool GrappleSeeker::collide(Platform *p) {
         }
     }
     
-    _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY());
-    printf("cX: %f, cY: %f\n", closestCollision->getIntersectionX(), closestCollision->getIntersectionY());
+    if (closestCollision->getIntersectionX() == p->getX()) {
+        _player->createRope(closestCollision->getIntersectionX() - 2, closestCollision->getIntersectionY());
+    } else if (closestCollision->getIntersectionX() == p->getX() + p->getWidth()) {
+        _player->createRope(closestCollision->getIntersectionX() + 1, closestCollision->getIntersectionY());
+    }
+    
+    if (closestCollision->getIntersectionY() == p->getY()) {
+        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() - 2);
+    } else if (closestCollision->getIntersectionY() == p->getY() + p->getHeight()) {
+        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() + 1);
+    }
     
     delete collisions;
     return true;

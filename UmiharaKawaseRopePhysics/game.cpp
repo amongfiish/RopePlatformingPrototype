@@ -56,11 +56,11 @@ bool gameUpdate(KeyboardLayout *keys) {
 }
 
 void gameDraw(SDL_Renderer* renderer) {
+    level.draw(renderer);
+    
     if (currentGameState == GAME) {
         player.draw(renderer);
     } else if (currentGameState == LEVEL_EDITOR) {
         
     }
-    
-    level.draw(renderer);
 }
