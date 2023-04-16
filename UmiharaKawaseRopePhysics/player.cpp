@@ -307,12 +307,12 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
     _x += _velocityX;
     _y += _velocityY;
     
-    if (_grappleSeeker) {
-        _grappleSeeker->addVelocityX(_velocityX);
-        _grappleSeeker->addVelocityY(_velocityY);
-    }
+//    if (_grappleSeeker) {
+//        _grappleSeeker->addVelocityX(_velocityX);
+//        _grappleSeeker->addVelocityY(_velocityY);
+//    }
         
-    // rope create and destruction
+    // rope creation and destruction
     if (keys->getGrappleState() != NONE) {
         if (_rope) {
             if (aim == UP || aim == DOWN) {

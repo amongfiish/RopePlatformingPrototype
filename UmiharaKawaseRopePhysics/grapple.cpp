@@ -111,8 +111,8 @@ void GrappleSeeker::addVelocityY(double vY) {
 }
 
 CollisionReport *GrappleSeeker::collide(Platform *p) {
-    float x1 = _x - _player->getVelocityX();
-    float y1 = _y - _player->getVelocityY();
+    float x1 = _x /*- _player->getVelocityX()*/;
+    float y1 = _y /*- _player->getVelocityY()*/;
     float x2 = _x + _velocityX;
     float y2 = _y + _velocityY;
     
@@ -154,23 +154,9 @@ CollisionReport *GrappleSeeker::collide(Platform *p) {
     return closestCollision;
 }
 
-// grapple seeker can clip through objects at high speed.
-// this can happen to the player as well if they're moving too fast.
 bool GrappleSeeker::seek(Level *level) {
     CollisionReportContainer container;
     double seekerLength = sqrt(pow(_x - (_player->getX() + _player->getWidth() / 2), 2) + pow(_y - (_player->getY() + _player->getHeight() / 2), 2));
-    
-    if (_extending && seekerLength > MAX_ROPE_LENGTH) {
-        _extending = false;
-    } else if (!_extending && seekerLength <= sqrt(pow(_velocityX, 2) + pow(_velocityY, 2))) {
-        return true;
-    }
-    
-    _x += _velocityX;
-    _y += _velocityY;
-    
-    _velocityX = (_extending) ? SEEK_SPEED * cos(_angle) : -RETRACT_SPEED * cos(_angle);
-    _velocityY = (_extending) ? SEEK_SPEED * sin(_angle) : -RETRACT_SPEED * sin(_angle);
     
     for (int i = 0; i < level->getNumberOfPlatforms(); i++) {
         CollisionReport *newCollision = collide(level->getPlatform(i));
@@ -184,6 +170,28 @@ bool GrappleSeeker::seek(Level *level) {
     }
     
     if (container.getNumberOfReports() == 0) {
+        _x += _velocityX;
+        _y += _velocityY;
+        
+        if (_extending) {
+            _velocityX = SEEK_SPEED * cos(_angle);
+            _velocityY = SEEK_SPEED * sin(_angle);
+        } else {
+            double diffX = _player->getX() + _player->getWidth() / 2 - _x;
+            double diffY = _player->getY() + _player->getHeight() / 2 - _y;
+            printf("diffX: %f, diffY: %f\n", diffX, diffY);
+            double playerAngle = atan2(diffY, diffX);
+            
+            _velocityX = RETRACT_SPEED * cos(playerAngle);
+            _velocityY = RETRACT_SPEED * sin(playerAngle);
+        }
+        
+        if (_extending && seekerLength > MAX_ROPE_LENGTH) {
+            _extending = false;
+        } else if (!_extending && seekerLength <= sqrt(pow(_velocityX, 2) + pow(_velocityY, 2))) {
+            return true;
+        }
+        
         return false;
     }
     
