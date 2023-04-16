@@ -9,6 +9,7 @@
 #ifdef _WIN64
 #include <SDL.h>
 #include <SDL_ttf.h>
+#undef main
 #endif
 
 #include <stdio.h>
