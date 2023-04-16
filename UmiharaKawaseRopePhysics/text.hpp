@@ -1,7 +1,6 @@
 #ifndef text_hpp
 #define text_hpp
 
-#include <stdio.h>
 #ifdef __APPLE__
 #include <SDL2/SDL.h>
 #include <SDL2_ttf/SDL_ttf.h>
@@ -13,6 +12,7 @@
 #define main
 #endif
 
+#include <stdio.h>
 #include <string>
 using namespace std;
 

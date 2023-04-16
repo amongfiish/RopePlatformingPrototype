@@ -1,5 +1,10 @@
 #include "player.hpp"
 
+#ifdef _WIN64
+#define M_PI_2 M_PI/2
+#define M_PI_4 M_PI/4
+#endif
+
 const double JUMP_VELOCITY = 4;
 const double AIR_BLAST_VELOCITY_X = 2;
 const double AIR_BLAST_VELOCITY_Y = 4;
