@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
+#ifdef _WIN64
+#define main
+#endif
 
 enum InputState {
     NONE,

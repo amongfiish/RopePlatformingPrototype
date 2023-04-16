@@ -2,6 +2,11 @@
 
 #include "grapple.hpp"
 
+#ifdef _WIN64
+#define M_PI_2 M_PI/2
+#define M_PI_4 M_PI/4
+#endif
+
 const double STRETCH_ACCELERATION = 0.02;
 const double SLACK_CHANGE_SPEED = 4;
 const double SEEK_SPEED = 8;

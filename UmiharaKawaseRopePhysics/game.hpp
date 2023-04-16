@@ -2,6 +2,9 @@
 #define game_hpp
 
 #include <SDL2/SDL.h>
+#ifdef _WIN64
+#define main
+#endif
 #include "controls.hpp"
 
 enum GameMode {

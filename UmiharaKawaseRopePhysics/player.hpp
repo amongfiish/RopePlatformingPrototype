@@ -2,6 +2,9 @@
 #define player_hpp
 
 #include <SDL2/SDL.h>
+#ifdef _WIN64
+#define main
+#endif
 
 #include "level.hpp"
 #include "grapple.hpp"

@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2_ttf/SDL_ttf.h>
+#ifdef _WIN64
+#define main
+#endif
 #include <string>
 using namespace std;
 

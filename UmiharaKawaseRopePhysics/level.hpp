@@ -2,6 +2,9 @@
 #define level_hpp
 
 #include <SDL2/SDL.h>
+#ifdef _WIN64
+#define main
+#endif
 
 class Platform {
 public:
