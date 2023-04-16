@@ -43,6 +43,14 @@ public:
     void setGrapple(int grapple);
     void setAirBlast(int airBlast);
     
+    int getNextEditorModeState();
+    int getPreviousEditorModeState();
+    int getPlayToggleState();
+    
+    void setNextEditorMode(int nextEditorMode);
+    void setPreviousEditorMode(int previousEditorMode);
+    void setPlayToggle(int playToggle);
+    
 private:
     int _left;
     int _right;
@@ -67,6 +75,55 @@ private:
     int _jumpState;
     int _grappleState;
     int _airBlastState;
+    
+    int _nextEditorMode;
+    int _previousEditorMode;
+    int _playToggle;
+    int _nextEditorModeState;
+    int _previousEditorModeState;
+    int _playToggleState;
+};
+
+class MouseState {
+public:
+    int getX();
+    int getY();
+    int getMovementX();
+    int getMovementY();
+    
+    int getLeftClickState();
+    int getRightClickState();
+    int getMiddleClickState();
+    
+    int getScrollX();
+    int getScrollY();
+    
+    void setX(int x);
+    void setY(int y);
+    void setMovementX(int dX);
+    void setMovementY(int dY);
+    
+    void setLeftClickState(int state);
+    void setRightClickState(int state);
+    void setMiddleClickState(int state);
+    
+    void setScrollX(int scrollX);
+    void setScrollY(int scrollY);
+    
+    void update();
+    
+private:
+    int _x;
+    int _y;
+    int _dX;    // horizontal movement since last frame
+    int _dY;    // vertical movement since last frame
+    
+    int _leftClickState;
+    int _rightClickState;
+    int _middleClickState;
+    
+    int _scrollX;
+    int _scrollY;
 };
 
 #endif

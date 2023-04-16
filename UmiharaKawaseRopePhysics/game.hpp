@@ -4,6 +4,17 @@
 #include <SDL2/SDL.h>
 #include "controls.hpp"
 
+enum GameMode {
+    GAME,
+    LEVEL_EDITOR
+};
+
+enum LevelEditorMode {
+    PLATFORM,
+    START_POINT,
+    END_POINT
+};
+
 bool gameInit();
 void gameCleanUp();
 

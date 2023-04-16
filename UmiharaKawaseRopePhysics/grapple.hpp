@@ -16,6 +16,38 @@ const int MAX_ROPE_LENGTH = 200;
 
 class Player;
 
+class CollisionReport {
+public:
+    CollisionReport();
+    CollisionReport(float x, float y);
+    
+    float getIntersectionX();
+    float getIntersectionY();
+    
+    void setIntersectionX(float x);
+    void setIntersectionY(float y);
+    
+private:
+    float _intersectionX;
+    float _intersectionY;
+};
+
+class CollisionReportContainer {
+public:
+    CollisionReportContainer();
+    ~CollisionReportContainer();
+    
+    void addReport(float x, float y);
+    CollisionReport *getReport(int i);
+    
+    int getNumberOfReports();
+    
+private:
+    CollisionReport *_reports;
+    int _numberOfReports;
+    int _reportsCapacity;
+};
+
 class GrappleSeeker {
 public:
     GrappleSeeker(Player *player, double angle);
@@ -23,7 +55,7 @@ public:
     void addVelocityX(double x);
     void addVelocityY(double y);
     
-    int checkCollision(Platform *platform);
+    bool collide(Platform *platform);
     bool seek(Level *level);
     
     void draw(SDL_Renderer *renderer);
@@ -32,6 +64,7 @@ private:
     Player *_player;    // seeker origin
     
     double _angle;
+    bool _extending;
     
     double _x;
     double _y;

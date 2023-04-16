@@ -13,7 +13,7 @@ const double GROUND_ACCELERATION = 0.2;
 const double MAX_GROUND_VELOCITY = 2;
 const double MAX_AIR_VELOCITY = 2;
 
-const int LEVEL_BOTTOM = 500;
+const int LEVEL_BOTTOM = 484;
 
 Player::Player() {
     _x = 0;

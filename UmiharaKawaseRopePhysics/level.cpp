@@ -68,6 +68,14 @@ Level::~Level() {
     delete[] _platforms;
 }
 
+void save() {
+    
+}
+
+void load() {
+    
+}
+
 int Level::getStartX() {
     return _startX;
 }
@@ -103,6 +111,13 @@ void Level::addPlatform(int x, int y, int w, int h) {
         
         _platforms = newPlatforms;
     }
+}
+
+void Level::removePlatform(int i) {
+    for (int j = i + 1; j < _numberOfPlatforms; j++) {
+        _platforms[j - 1] = _platforms[j];
+    }
+    _numberOfPlatforms--;
 }
 
 Platform *Level::getPlatform(int i) {

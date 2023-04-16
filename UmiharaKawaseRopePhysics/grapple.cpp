@@ -5,12 +5,73 @@
 const double STRETCH_ACCELERATION = 0.02;
 const double SLACK_CHANGE_SPEED = 4;
 const double SEEK_SPEED = 8;
+const double RETRACT_SPEED = 12;
 
 const int GRAPPLE_RECT_HALF_WIDTH = 5;
 
 // from the internet. see definition at the bottom of this file.
-bool checkLineRectangleCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh);
-bool checkLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
+CollisionReportContainer *checkLineRectangleCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh);
+CollisionReport *checkLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
+
+CollisionReport::CollisionReport() {
+    _intersectionX = 0;
+    _intersectionY = 0;
+}
+
+CollisionReport::CollisionReport(float x, float y) {
+    _intersectionX = x;
+    _intersectionY = y;
+}
+
+float CollisionReport::getIntersectionX() {
+    return _intersectionX;
+}
+
+float CollisionReport::getIntersectionY() {
+    return _intersectionY;
+}
+
+void CollisionReport::setIntersectionX(float x) {
+    _intersectionX = x;
+}
+
+void CollisionReport::setIntersectionY(float y) {
+    _intersectionY = y;
+}
+
+CollisionReportContainer::CollisionReportContainer() {
+    _reports = new CollisionReport [10];
+    _numberOfReports = 0;
+    _reportsCapacity = 10;
+}
+
+CollisionReportContainer::~CollisionReportContainer() {
+    delete[] _reports;
+}
+
+void CollisionReportContainer::addReport(float x, float y) {
+    _reports[_numberOfReports].setIntersectionX(x);
+    
+    _numberOfReports++;
+    if (_numberOfReports >= _reportsCapacity) {
+        CollisionReport *newReports = new CollisionReport[_reportsCapacity * 2];
+        for (int i = 0; i < _numberOfReports; i++) {
+            newReports[i].setIntersectionX(_reports[i].getIntersectionX());
+            newReports[i].setIntersectionY(_reports[i].getIntersectionY());
+        }
+        delete[] _reports;
+        _reports = newReports;
+        _reportsCapacity *= 2;
+    }
+}
+
+CollisionReport *CollisionReportContainer::getReport(int i) {
+    return _reports + i;
+}
+
+int CollisionReportContainer::getNumberOfReports() {
+    return _numberOfReports;
+}
 
 GrappleSeeker::GrappleSeeker(Player *player, double angle) {
     _player = player;
@@ -21,6 +82,8 @@ GrappleSeeker::GrappleSeeker(Player *player, double angle) {
     _y = player->getY() + player->getHeight() / 2;
     _velocityX = SEEK_SPEED * cos(_angle);
     _velocityY = SEEK_SPEED * sin(_angle);
+    
+    _extending = true;
 }
 
 void GrappleSeeker::addVelocityX(double vX) {
@@ -31,111 +94,73 @@ void GrappleSeeker::addVelocityY(double vY) {
     _velocityY += vY;
 }
 
-int GrappleSeeker::checkCollision(Platform *p) {
-    bool wasAlignedX = false;
-    bool wasAlignedY = false;
-    bool alignedX = false;
-    bool alignedY = false;
+bool GrappleSeeker::collide(Platform *p) {
+    float x1 = _x;
+    float y1 = _y;
+    float x2 = _x + _velocityX;
+    float y2 = _y + _velocityY;
     
-    bool movingRight = false;
-    bool movingLeft = false;
-    bool movingUp = false;
-    bool movingDown = false;
+    float rx = p->getX();
+    float ry = p->getY();
+    float rw = p->getWidth();
+    float rh = p->getHeight();
     
-    if (_y > p->getY() &&
-        _y < p->getY() + p->getHeight()) {
-        wasAlignedY = true;
+    printf("x1: %f, y1: %f, x2: %f, y2: %f, rx: %f, ry: %f, rw: %f, rh: %f\n", x1, y1, x2, y2, rx, ry, rw, rh);
+    
+    CollisionReportContainer *collisions = checkLineRectangleCollision(x1, y1, x2, y2, rx, ry, rw, rh);
+    if (collisions->getNumberOfReports() == 0) {
+        delete collisions;
+        return false;
     }
     
-    if (_y + _velocityY > p->getY() &&
-        _y + _velocityY < p->getY() + p->getHeight()) {
-        // player is aligned on y axis
-        alignedY = true;
-    }
+    CollisionReport *closestCollision = NULL;
+    double closestCollisionDistance = 0;
     
-    if (_x > p->getX() &&
-        _x < p->getX() + p->getWidth()) {
-        wasAlignedX = true;
-    }
-    
-    if (_x + _velocityX > p->getX() &&
-        _x + _velocityX < p->getX() + p->getWidth()) {
-        // player is aligned on x axis
-        alignedX = true;
-    }
-    
-    if (_velocityX > 0) {
-        // the player is moving right
-        movingRight = true;
-    } else if (_velocityX < 0) {
-        // the player is moving left
-        movingLeft = true;
-    }
-    
-    if (_velocityY > 0) {
-        // the player is moving down
-        movingDown = true;
-    } else if (_velocityY < 0) {
-        // the player is moving up
-        movingUp = true;
-    }
-    
-    if (alignedY && alignedX && !wasAlignedX) {
-        if (movingRight) {
-            return LEFT;
-        } else if (movingLeft) {
-            return RIGHT;
-        }
-    } else if (alignedX && alignedY && !wasAlignedY) {
-        if (movingDown) {
-            return UP;
-        } else if (movingUp) {
-            return DOWN;
+    for (int i = 0; i < collisions->getNumberOfReports(); i++) {
+        CollisionReport *currentCollisionReport = collisions->getReport(i);
+        double diffX = _player->getX() - currentCollisionReport->getIntersectionX();
+        double diffY = _player->getY() - currentCollisionReport->getIntersectionY();
+        double distance = sqrt(pow(diffX, 2) + pow(diffY, 2));
+        
+        if (closestCollision) {
+            if (distance < closestCollisionDistance) {
+                closestCollision = currentCollisionReport;
+                closestCollisionDistance = distance;
+            }
+        } else {
+            closestCollision = currentCollisionReport;
+            closestCollisionDistance = distance;
         }
     }
     
-    return -1;
+    _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY());
+    
+    delete collisions;
+    return true;
 }
 
+// grapple seeker can clip through objects at high speed.
+// this can happen to the player as well if they're moving too fast.
 bool GrappleSeeker::seek(Level *level) {
-    _x += _velocityX;
-    _y += _velocityY;
+    double seekerLength = sqrt(pow(_x - (_player->getX() + _player->getWidth() / 2), 2) + pow(_y - (_player->getY() + _player->getHeight() / 2), 2));
     
-    for (int i = 0; i < level->getNumberOfPlatforms(); i++) {
-        int collision = checkCollision(level->getPlatform(i));
-        switch (collision) {
-            case UP:
-                _player->createRope(_x, level->getPlatform(i)->getY() - 2);
-                break;
-                
-            case DOWN:
-                _player->createRope(_x, level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
-                break;
-                
-            case LEFT:
-                _player->createRope(level->getPlatform(i)->getX() - 2, _y);
-                break;
-                
-            case RIGHT:
-                _player->createRope(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1, _y);
-                break;
-                
-            default:
-                break;
-        }
-        
-        if (collision >= 0) {
-            return true;
-        }
-    }
-    
-    double seekerLength = sqrt(pow(_x - (_player->getX() + _player->getWidth() / 2), 2) + pow(_y - (_player->getY() + _player->getHeight()), 2));
-    if (seekerLength > MAX_ROPE_LENGTH) {
+    if (_extending && seekerLength > MAX_ROPE_LENGTH) {
+        _extending = false;
+    } else if (!_extending && seekerLength <= sqrt(pow(_velocityX, 2) + pow(_velocityY, 2))) {
         return true;
     }
     
-    _velocityX = SEEK_SPEED * cos(_angle);
-    _velocityY = SEEK_SPEED * sin(_angle);
+    _x += _velocityX;
+    _y += _velocityY;
+    
+    _velocityX = (_extending) ? SEEK_SPEED * cos(_angle) : -RETRACT_SPEED * cos(_angle);
+    _velocityY = (_extending) ? SEEK_SPEED * sin(_angle) : -RETRACT_SPEED * sin(_angle);
+    
+    for (int i = 0; i < level->getNumberOfPlatforms(); i++) {
+        if (collide(level->getPlatform(i))) {
+            return true;
+        }
+    }
     
     return false;
 }
@@ -455,33 +480,53 @@ void Rope::draw(SDL_Renderer *renderer) {
 }
 
 // collision code from https://www.jeffreythompson.org/collision-detection/line-rect.php
-bool checkLineRectangleCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh) {
+CollisionReportContainer *checkLineRectangleCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh) {
+    CollisionReportContainer *newContainer = new CollisionReportContainer();
+    
     // check if the line has hit any of the rectangle's sides
     // uses the Line/Line function below
-    bool left =   checkLineCollision(x1,y1,x2,y2, rx,ry,rx, ry+rh);
-    bool right =  checkLineCollision(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh);
-    bool top =    checkLineCollision(x1,y1,x2,y2, rx,ry, rx+rw,ry);
-    bool bottom = checkLineCollision(x1,y1,x2,y2, rx,ry+rh, rx+rw,ry+rh);
+    CollisionReport *leftCollisionReport = checkLineCollision(x1,y1,x2,y2, rx,ry,rx, ry+rh);
+    if (leftCollisionReport) {
+        newContainer->addReport(leftCollisionReport->getIntersectionX(), leftCollisionReport->getIntersectionY());
+        delete leftCollisionReport;
+    }
+    
+    CollisionReport *rightCollisionReport = checkLineCollision(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh);
+    if (rightCollisionReport) {
+        newContainer->addReport(rightCollisionReport->getIntersectionX(), rightCollisionReport->getIntersectionY());
+        delete rightCollisionReport;
+    }
+    
+    CollisionReport *topCollisionReport = checkLineCollision(x1,y1,x2,y2, rx,ry, rx+rw,ry);
+    if (topCollisionReport) {
+        newContainer->addReport(topCollisionReport->getIntersectionX(), topCollisionReport->getIntersectionY());
+        delete topCollisionReport;
+    }
+    
+    CollisionReport *bottomCollisionReport = checkLineCollision(x1,y1,x2,y2, rx,ry+rh, rx+rw,ry+rh);
+    if (bottomCollisionReport) {
+        newContainer->addReport(bottomCollisionReport->getIntersectionX(), bottomCollisionReport->getIntersectionY());
+        delete bottomCollisionReport;
+    }
 
     // if ANY of the above are true, the line
     // has hit the rectangle
-    if (left || right || top || bottom) {
-        return true;
-    }
-    
-    return false;
+    return newContainer;
 }
 
 
-bool checkLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {
+CollisionReport *checkLineCollision(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {
     // calculate the direction of the lines
     float uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
     float uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
 
     // if uA and uB are between 0-1, lines are colliding
     if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
-        return true;
+        float intersectionX = x1 + (uA * (x2-x1));
+        float intersectionY = y1 + (uA * (y2-y1));
+        
+        return new CollisionReport(intersectionX, intersectionY);
     }
     
-    return false;
+    return NULL;
 }

@@ -1,10 +1,18 @@
 #include "game.hpp"
 #include "player.hpp"
 #include "level.hpp"
+#include "text.hpp"
 using namespace std;
+
+int currentGameState = GAME;
+int currentLevelEditorMode = PLATFORM;
 
 Player player;
 Level level;
+
+TextBox mousePos;
+TextBox platformSize;
+TextBox editorMode;
 
 bool gameInit() {
     // top wall
@@ -38,12 +46,21 @@ void gameCleanUp() {
 }
 
 bool gameUpdate(KeyboardLayout *keys) {
-    player.update(keys, &level);
+    if (currentGameState == GAME) {
+        player.update(keys, &level);
+    } else if (currentGameState == LEVEL_EDITOR) {
+        
+    }
     
     return true;
 }
 
 void gameDraw(SDL_Renderer* renderer) {
+    if (currentGameState == GAME) {
+        player.draw(renderer);
+    } else if (currentGameState == LEVEL_EDITOR) {
+        
+    }
+    
     level.draw(renderer);
-    player.draw(renderer);
 }

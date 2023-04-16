@@ -7,12 +7,13 @@ using namespace std;
 
 KeyboardLayout defaultLayout;
 KeyboardLayout *activeKeyboardLayout = NULL;
+MouseState mouseState;
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 
-const int WINDOW_WIDTH = 600;
-const int WINDOW_HEIGHT = 400;
+const int WINDOW_WIDTH = 640;
+const int WINDOW_HEIGHT = 384;
 
 const int FPS = 60;
 
@@ -30,9 +31,33 @@ int main(int argc, const char * argv[]) {
     while (running) {
         Uint32 startTicks = SDL_GetTicks();
         
+        mouseState.update();
+        
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 running = false;
+            } else if (e.type == SDL_MOUSEBUTTONDOWN) {
+                if (e.button.button == SDL_BUTTON_LEFT) {
+                    mouseState.setLeftClickState(PRESSED);
+                } else if (e.button.button == SDL_BUTTON_RIGHT) {
+                    mouseState.setRightClickState(PRESSED);
+                } else if (e.button.button == SDL_BUTTON_MIDDLE) {
+                    mouseState.setMiddleClickState(PRESSED);
+                }
+            } else if (e.type == SDL_MOUSEBUTTONUP) {
+                if (e.button.button == SDL_BUTTON_LEFT) {
+                    mouseState.setLeftClickState(NONE);
+                } else if (e.button.button == SDL_BUTTON_RIGHT) {
+                    mouseState.setRightClickState(NONE);
+                } else if (e.button.button == SDL_BUTTON_MIDDLE) {
+                    mouseState.setMiddleClickState(NONE);
+                }
+            } else if (e.type == SDL_MOUSEMOTION) {
+                mouseState.setMovementX(e.motion.xrel);
+                mouseState.setMovementY(e.motion.yrel);
+            } else if (e.type == SDL_MOUSEWHEEL) {
+                mouseState.setScrollX(e.wheel.x);
+                mouseState.setScrollY(e.wheel.y);
             }
         }
         
@@ -89,7 +114,11 @@ bool init() {
     
     defaultLayout.setJump(SDL_SCANCODE_C);
     defaultLayout.setGrapple(SDL_SCANCODE_X);
-    defaultLayout.setAirBlast(SDL_SCANCODE_C);
+    defaultLayout.setAirBlast(-1);
+    
+    defaultLayout.setNextEditorMode(SDL_SCANCODE_E);
+    defaultLayout.setPreviousEditorMode(SDL_SCANCODE_Q);
+    defaultLayout.setPlayToggle(SDL_SCANCODE_SPACE);
     
     activeKeyboardLayout = &defaultLayout;
     

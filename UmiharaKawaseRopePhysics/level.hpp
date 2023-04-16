@@ -34,11 +34,15 @@ public:
     Level();
     ~Level();
     
+    void save();
+    void load();
+    
     int getStartX();
     int getStartY();
     void setStartPos(int x, int y);
     
     void addPlatform(int x, int y, int w, int h);
+    void removePlatform(int i);
     Platform *getPlatform(int i);
     
     int getNumberOfPlatforms();
