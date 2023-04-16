@@ -5,7 +5,7 @@
 #endif
 
 #ifdef _WIN64
-#include <SDL2.h>
+#include <SDL.h>
 #endif
 
 #include "game.hpp"

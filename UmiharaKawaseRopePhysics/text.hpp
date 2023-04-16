@@ -2,11 +2,17 @@
 #define text_hpp
 
 #include <stdio.h>
+#ifdef __APPLE__
 #include <SDL2/SDL.h>
 #include <SDL2_ttf/SDL_ttf.h>
+#endif
+
 #ifdef _WIN64
+#include <SDL.h>
+#include <SDL_ttf.h>
 #define main
 #endif
+
 #include <string>
 using namespace std;
 

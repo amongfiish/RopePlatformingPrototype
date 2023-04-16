@@ -1,10 +1,15 @@
 #ifndef game_hpp
 #define game_hpp
 
+#ifdef __APPLE__
 #include <SDL2/SDL.h>
+#endif
+
 #ifdef _WIN64
+#include <SDL.h>
 #define main
 #endif
+
 #include "controls.hpp"
 
 enum GameMode {
