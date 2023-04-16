@@ -12,7 +12,7 @@ enum CORNERS {
 };
 
 const int MIN_ROPE_LENGTH = 8;
-const int MAX_ROPE_LENGTH = 200;
+const int MAX_ROPE_LENGTH = 150;
 
 class Player;
 
@@ -53,30 +53,6 @@ private:
     int _reportsCapacity;
 };
 
-class GrappleSeeker {
-public:
-    GrappleSeeker(Player *player, double angle);
-    
-    void addVelocityX(double x);
-    void addVelocityY(double y);
-    
-    CollisionReport *collide(Platform *platform);
-    bool seek(Level *level);
-    
-    void draw(SDL_Renderer *renderer);
-    
-private:
-    Player *_player;    // seeker origin
-    
-    double _angle;
-    bool _extending;
-    
-    double _x;
-    double _y;
-    double _velocityX;
-    double _velocityY;
-};
-
 class Pivot {
 public:
     int getX();
@@ -101,6 +77,39 @@ private:
     double _attachAngle;
 };
 
+class GrappleSeeker {
+public:
+    GrappleSeeker(Player *player, double angle);
+    ~GrappleSeeker();
+    
+    void addVelocityX(double x);
+    void addVelocityY(double y);
+    
+    double getCurrentLength();
+    
+    CollisionReport *collide(Platform *platform);
+    bool seek(Level *level);
+    
+    int wrapCorners(Level *level);
+    
+    void draw(SDL_Renderer *renderer);
+    
+private:
+    Player *_player;    // seeker origin
+    
+    double _angle;
+    bool _extending;
+    
+    double _x;
+    double _y;
+    double _velocityX;
+    double _velocityY;
+    
+    Pivot *_pivots;
+    int _numberOfPivots;
+    int _pivotsCapacity;
+};
+
 class Rope {
 public:
     Rope(Player *p, int gX, int gY);
@@ -115,6 +124,9 @@ public:
     
     void increaseSlack();
     void decreaseSlack();
+    
+    Pivot *getPivots();
+    void setNumberOfPivots(int x);
     
     bool update(Level *level);
     void draw(SDL_Renderer *renderer);

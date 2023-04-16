@@ -82,6 +82,10 @@ void Player::destroyRope() {
     _rope = NULL;
 }
 
+Rope *Player::getRope() {
+    return _rope;
+}
+
 int Player::checkCollision(Platform *p) {
     bool wasAlignedX = false;
     bool wasAlignedY = false;

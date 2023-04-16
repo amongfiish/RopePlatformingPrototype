@@ -4,6 +4,8 @@
 #include "text.hpp"
 using namespace std;
 
+const string VERSION = "indev 1-2";
+
 int currentGameState = GAME;
 int currentLevelEditorMode = PLATFORM;
 

@@ -44,6 +44,8 @@ public:
     void createRope(int gX, int gY);
     void destroyRope();
     
+    Rope *getRope();
+    
     bool update(KeyboardLayout *keys, Level *level);
     void draw(SDL_Renderer *renderer);
     
