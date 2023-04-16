@@ -28,7 +28,7 @@ const int FPS = 60;
 bool init();
 void cleanUp();
 
-int main(int argc, const char * argv[]) {
+int main(int argc, char* argv[]) {
     if (!init() || !gameInit()) {
         cleanUp();
         return -1;
