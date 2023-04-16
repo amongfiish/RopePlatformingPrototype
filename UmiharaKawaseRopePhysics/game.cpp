@@ -23,9 +23,9 @@ bool gameInit() {
     level.addPlatform(0, -100, 32, 500);
     // right wall
     level.addPlatform(568, -100, 32, 500);
-    // bottom left platform
+    // bottom left 'ground'
     level.addPlatform(32, 368, 96, 32);
-    // bottom right platform
+    // bottom right 'ground'
     level.addPlatform(472, 368, 96, 32);
     // middle platform
     level.addPlatform(224, 200, 144, 32);
