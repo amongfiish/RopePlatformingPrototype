@@ -19,7 +19,7 @@ class Player;
 class CollisionReport {
 public:
     CollisionReport();
-    CollisionReport(float x, float y);
+    CollisionReport(float x, float y, Platform *platform);
     
     float getIntersectionX();
     float getIntersectionY();
@@ -27,9 +27,14 @@ public:
     void setIntersectionX(float x);
     void setIntersectionY(float y);
     
+    Platform *getPlatform();
+    void setPlatform(Platform *platform);
+    
 private:
     float _intersectionX;
     float _intersectionY;
+    
+    Platform *_platform;
 };
 
 class CollisionReportContainer {
@@ -55,7 +60,7 @@ public:
     void addVelocityX(double x);
     void addVelocityY(double y);
     
-    bool collide(Platform *platform);
+    CollisionReport *collide(Platform *platform);
     bool seek(Level *level);
     
     void draw(SDL_Renderer *renderer);

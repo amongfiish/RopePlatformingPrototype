@@ -18,11 +18,15 @@ bool checkLineCollision(float x1, float y1, float x2, float y2, float x3, float 
 CollisionReport::CollisionReport() {
     _intersectionX = 0;
     _intersectionY = 0;
+    
+    _platform = NULL;
 }
 
-CollisionReport::CollisionReport(float x, float y) {
+CollisionReport::CollisionReport(float x, float y, Platform *platform) {
     _intersectionX = x;
     _intersectionY = y;
+    
+    _platform = platform;
 }
 
 float CollisionReport::getIntersectionX() {
@@ -39,6 +43,14 @@ void CollisionReport::setIntersectionX(float x) {
 
 void CollisionReport::setIntersectionY(float y) {
     _intersectionY = y;
+}
+
+Platform *CollisionReport::getPlatform() {
+    return _platform;
+}
+
+void CollisionReport::setPlatform(Platform *platform) {
+    _platform = platform;
 }
 
 CollisionReportContainer::CollisionReportContainer() {
@@ -61,6 +73,7 @@ void CollisionReportContainer::addReport(float x, float y) {
         for (int i = 0; i < _numberOfReports; i++) {
             newReports[i].setIntersectionX(_reports[i].getIntersectionX());
             newReports[i].setIntersectionY(_reports[i].getIntersectionY());
+            newReports[i].setPlatform(_reports[i].getPlatform());
         }
         delete[] _reports;
         _reports = newReports;
@@ -97,7 +110,7 @@ void GrappleSeeker::addVelocityY(double vY) {
     _velocityY += vY;
 }
 
-bool GrappleSeeker::collide(Platform *p) {
+CollisionReport *GrappleSeeker::collide(Platform *p) {
     float x1 = _x - _player->getVelocityX();
     float y1 = _y - _player->getVelocityY();
     float x2 = _x + _velocityX;
@@ -111,7 +124,7 @@ bool GrappleSeeker::collide(Platform *p) {
     CollisionReportContainer *collisions = getLineRectangleCollision(x1, y1, x2, y2, rx, ry, rw, rh);
     if (collisions->getNumberOfReports() == 0) {
         delete collisions;
-        return false;
+        return NULL;
     }
     
     CollisionReport *closestCollision = NULL;
@@ -119,12 +132,13 @@ bool GrappleSeeker::collide(Platform *p) {
     
     for (int i = 0; i < collisions->getNumberOfReports(); i++) {
         CollisionReport *currentCollisionReport = collisions->getReport(i);
+        currentCollisionReport->setPlatform(p);
         double diffX = _player->getX() - currentCollisionReport->getIntersectionX();
         double diffY = _player->getY() - currentCollisionReport->getIntersectionY();
         double distance = sqrt(pow(diffX, 2) + pow(diffY, 2));
         
         if (closestCollision) {
-            if (distance < closestCollisionDistance) {
+            if ((_extending && distance < closestCollisionDistance) || (!_extending && distance > closestCollisionDistance)) {
                 closestCollision = currentCollisionReport;
                 closestCollisionDistance = distance;
             }
@@ -134,25 +148,16 @@ bool GrappleSeeker::collide(Platform *p) {
         }
     }
     
-    if (closestCollision->getIntersectionX() == p->getX()) {
-        _player->createRope(closestCollision->getIntersectionX() - 2, closestCollision->getIntersectionY());
-    } else if (closestCollision->getIntersectionX() == p->getX() + p->getWidth()) {
-        _player->createRope(closestCollision->getIntersectionX() + 1, closestCollision->getIntersectionY());
-    }
-    
-    if (closestCollision->getIntersectionY() == p->getY()) {
-        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() - 2);
-    } else if (closestCollision->getIntersectionY() == p->getY() + p->getHeight()) {
-        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() + 1);
-    }
+    closestCollision = new CollisionReport(closestCollision->getIntersectionX(), closestCollision->getIntersectionY(), closestCollision->getPlatform());
     
     delete collisions;
-    return true;
+    return closestCollision;
 }
 
 // grapple seeker can clip through objects at high speed.
 // this can happen to the player as well if they're moving too fast.
 bool GrappleSeeker::seek(Level *level) {
+    CollisionReportContainer container;
     double seekerLength = sqrt(pow(_x - (_player->getX() + _player->getWidth() / 2), 2) + pow(_y - (_player->getY() + _player->getHeight() / 2), 2));
     
     if (_extending && seekerLength > MAX_ROPE_LENGTH) {
@@ -168,12 +173,53 @@ bool GrappleSeeker::seek(Level *level) {
     _velocityY = (_extending) ? SEEK_SPEED * sin(_angle) : -RETRACT_SPEED * sin(_angle);
     
     for (int i = 0; i < level->getNumberOfPlatforms(); i++) {
-        if (collide(level->getPlatform(i))) {
-            return true;
+        CollisionReport *newCollision = collide(level->getPlatform(i));
+        
+        if (newCollision) {
+            container.addReport(newCollision->getIntersectionX(), newCollision->getIntersectionY());
+            container.getReport(container.getNumberOfReports() - 1)->setPlatform(newCollision->getPlatform());
+            
+            delete newCollision;
         }
     }
     
-    return false;
+    if (container.getNumberOfReports() == 0) {
+        return false;
+    }
+    
+    CollisionReport *closestCollision = NULL;
+    double closestCollisionDistance = 0;
+    
+    for (int i = 0; i < container.getNumberOfReports(); i++) {
+        CollisionReport *currentCollisionReport = container.getReport(i);
+        double diffX = _player->getX() - currentCollisionReport->getIntersectionX();
+        double diffY = _player->getY() - currentCollisionReport->getIntersectionY();
+        double distance = sqrt(pow(diffX, 2) + pow(diffY, 2));
+        
+        if (closestCollision) {
+            if ((_extending && distance < closestCollisionDistance) || (!_extending && distance > closestCollisionDistance)) {
+                closestCollision = currentCollisionReport;
+                closestCollisionDistance = distance;
+            }
+        } else {
+            closestCollision = currentCollisionReport;
+            closestCollisionDistance = distance;
+        }
+    }
+    
+    if (closestCollision->getIntersectionX() == closestCollision->getPlatform()->getX()) {
+        _player->createRope(closestCollision->getIntersectionX() - 2, closestCollision->getIntersectionY());
+    } else if (closestCollision->getIntersectionX() == closestCollision->getPlatform()->getX() + closestCollision->getPlatform()->getWidth()) {
+        _player->createRope(closestCollision->getIntersectionX() + 1, closestCollision->getIntersectionY());
+    }
+    
+    if (closestCollision->getIntersectionY() == closestCollision->getPlatform()->getY()) {
+        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() - 2);
+    } else if (closestCollision->getIntersectionY() == closestCollision->getPlatform()->getY() + closestCollision->getPlatform()->getHeight()) {
+        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() + 1);
+    }
+    
+    return true;
 }
 
 void GrappleSeeker::draw(SDL_Renderer *renderer) {
@@ -534,7 +580,11 @@ CollisionReport *getLineCollision(float x1, float y1, float x2, float y2, float 
         float intersectionX = x1 + (uA * (x2-x1));
         float intersectionY = y1 + (uA * (y2-y1));
         
-        return new CollisionReport(intersectionX, intersectionY);
+        CollisionReport *report = new CollisionReport();
+        report->setIntersectionX(intersectionX);
+        report->setIntersectionY(intersectionY);
+        
+        return report;
     }
     
     return NULL;
