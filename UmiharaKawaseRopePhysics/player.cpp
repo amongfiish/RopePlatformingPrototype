@@ -18,7 +18,7 @@ const double GROUND_ACCELERATION = 0.2;
 const double MAX_GROUND_VELOCITY = 2;
 const double MAX_AIR_VELOCITY = 2;
 
-const int LEVEL_BOTTOM = 484;
+const int LEVEL_BOTTOM = 400;
 
 Player::Player() {
     _x = 0;
@@ -373,7 +373,7 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
         }
     }
     
-    if (_y > LEVEL_BOTTOM) {
+    if (_y > LEVEL_BOTTOM && !_rope && !_grappleSeeker) {
         _x = level->getStartX();
         _y = level->getStartY();
         stop();
