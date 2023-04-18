@@ -31,6 +31,13 @@ const double MAX_VELOCITY_Y = 8;
 
 const int LEVEL_BOTTOM = 400;
 
+const int LEFT_EYE_POS = 4;
+const int RIGHT_EYE_POS = 18;
+const int EYE_HEIGHT = 10;
+const int EYE_WIDTH = 10;
+const int PUPIL_WIDTH = 4;
+const int LOOK_DISTANCE = 3;
+
 const int PLAYER_WIDTH = 32;
 const int PLAYER_HEIGHT = 32;
 
@@ -85,6 +92,7 @@ private:
     double _velocityY;
     
     bool _grounded;
+    int _aim;
     int _facing;
     
     bool _canAirBlast;

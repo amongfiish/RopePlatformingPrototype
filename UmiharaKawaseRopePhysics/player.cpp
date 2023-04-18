@@ -156,28 +156,28 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
     _velocityY += GRAVITY;
     
     // fire direction (aim)
-    int aim = -1;
+    _aim = -1;
     if (keys->getUpState() != NONE) {
-        aim = UP;
+        _aim = UP;
     }
     if (keys->getDownState() != NONE) {
-        aim = DOWN;
+        _aim = DOWN;
     }
     if (keys->getUpState() != NONE && keys->getLeftState() != NONE) {
-        aim = UPLEFT;
+        _aim = UPLEFT;
     }
     if (keys->getUpState() != NONE && keys->getRightState() != NONE) {
-        aim = UPRIGHT;
+        _aim = UPRIGHT;
     }
     if (keys->getDownState() != NONE && keys->getLeftState() != NONE) {
-        aim = DOWNLEFT;
+        _aim = DOWNLEFT;
     }
     if (keys->getDownState() != NONE && keys->getRightState() != NONE) {
-        aim = DOWNRIGHT;
+        _aim = DOWNRIGHT;
     }
     
     // movement
-    if (aim < 0) {
+    if (_aim < 0) {
         if (_grounded) {
             if (keys->getRightState() != NONE) {
                 if (_velocityX < MAX_GROUND_VELOCITY) {
@@ -221,7 +221,7 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
         _velocityY -= JUMP_VELOCITY;
     } else if (keys->getAirBlastState() == PRESSED && !_grounded && _canAirBlast && !_rope) {
         _canAirBlast = false;
-        switch (aim) {
+        switch (_aim) {
             case UPLEFT:
                 _velocityX += AIR_BLAST_VELOCITY_X;
                 _velocityY += AIR_BLAST_VELOCITY_Y;
@@ -321,7 +321,7 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
     // rope creation and destruction
     if (keys->getGrappleState() != NONE) {
         if (_rope) {
-            if (aim == UP || aim == DOWN) {
+            if (_aim == UP || _aim == DOWN) {
                 if (keys->getDownState() != NONE) {
                     _rope->decreaseSlack();
                 }
@@ -337,17 +337,17 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
             _velocityX += _rope->getAccelerationX();
             _velocityY += _rope->getAccelerationY();
         } else if (!_grappleSeeker && keys->getGrappleState() == PRESSED) {
-            if (aim == UPLEFT) {
+            if (_aim == UPLEFT) {
                 createGrappleSeeker(-3 * M_PI_4);
-            } else if (aim == UP) {
+            } else if (_aim == UP) {
                 createGrappleSeeker(-M_PI_2);
-            } else if (aim == UPRIGHT) {
+            } else if (_aim == UPRIGHT) {
                 createGrappleSeeker(-M_PI_4);
-            } else if (aim == DOWNLEFT) {
+            } else if (_aim == DOWNLEFT) {
                 createGrappleSeeker(3 * M_PI_4);
-            } else if (aim == DOWN) {
+            } else if (_aim == DOWN) {
                 createGrappleSeeker(M_PI_2);
-            } else if (aim == DOWNRIGHT) {
+            } else if (_aim == DOWNRIGHT) {
                 createGrappleSeeker(M_PI_4);
             } else if (_facing == LEFT) {
                 createGrappleSeeker(M_PI);
@@ -396,4 +396,57 @@ void Player::draw(SDL_Renderer *renderer) {
     
     SDL_Rect rect = { static_cast<int>(_x), static_cast<int>(_y), _width, _height };
     SDL_RenderFillRect(renderer, &rect);
+    
+    // eyes whites
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    
+    SDL_Rect leftWhiteRect = { static_cast<int>(_x) + LEFT_EYE_POS, static_cast<int>(_y) + EYE_HEIGHT, EYE_WIDTH, EYE_WIDTH };
+    SDL_RenderFillRect(renderer, &leftWhiteRect);
+    
+    SDL_Rect rightWhiteRect = { static_cast<int>(_x) + RIGHT_EYE_POS, static_cast<int>(_y) + EYE_HEIGHT, EYE_WIDTH, EYE_WIDTH };
+    SDL_RenderFillRect(renderer, &rightWhiteRect);
+    
+    // pupils
+    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+    
+    int lookXOffset = 0;
+    int lookYOffset = 0;
+    
+    switch (_aim) {
+        case UPLEFT:
+            lookXOffset -= LOOK_DISTANCE;
+            lookYOffset -= LOOK_DISTANCE;
+            break;
+        case UP:
+            lookYOffset -= LOOK_DISTANCE;
+            break;
+        case UPRIGHT:
+            lookXOffset += LOOK_DISTANCE;
+            lookYOffset -= LOOK_DISTANCE;
+            break;
+        case DOWNLEFT:
+            lookXOffset -= LOOK_DISTANCE;
+            lookYOffset += LOOK_DISTANCE;
+            break;
+        case DOWN:
+            lookYOffset += LOOK_DISTANCE;
+            break;
+        case DOWNRIGHT:
+            lookXOffset += LOOK_DISTANCE;
+            lookYOffset += LOOK_DISTANCE;
+            break;
+        default:
+            if (_facing == LEFT) {
+                lookXOffset -= LOOK_DISTANCE;
+            } else if (_facing == RIGHT) {
+                lookXOffset += LOOK_DISTANCE;
+            }
+            break;
+    }
+    
+    SDL_Rect leftPupilRect = { leftWhiteRect.x + EYE_WIDTH / 2 - PUPIL_WIDTH / 2 + lookXOffset, leftWhiteRect.y + EYE_WIDTH / 2 - PUPIL_WIDTH / 2 + lookYOffset, PUPIL_WIDTH, PUPIL_WIDTH };
+    SDL_Rect rightPupilRect = { rightWhiteRect.x + EYE_WIDTH / 2 - PUPIL_WIDTH / 2 + lookXOffset, rightWhiteRect.y + EYE_WIDTH / 2 - PUPIL_WIDTH / 2 + lookYOffset, PUPIL_WIDTH, PUPIL_WIDTH };
+    
+    SDL_RenderFillRect(renderer, &leftPupilRect);
+    SDL_RenderFillRect(renderer, &rightPupilRect);
 }
