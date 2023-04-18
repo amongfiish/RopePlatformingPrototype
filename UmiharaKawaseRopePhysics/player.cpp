@@ -18,6 +18,9 @@ Player::Player() {
     _facing = RIGHT;
     
     _canAirBlast = false;
+    
+    _wasCollidingVertically = false;
+    _wasCollidingHorizontally = false;
 }
 
 double Player::getX() {
@@ -127,27 +130,77 @@ int Player::checkCollision(Platform *p) {
     
 //    printf("AlignedX: %d, AlignedY: %d, WasAlignedX: %d, WasAlignedY: %d, Right: %d, Left %d, Up: %d, Down: %d\n", alignedX, alignedY, wasAlignedX, wasAlignedY, movingRight, movingLeft, movingUp, movingDown);
     
-    if (alignedX && alignedY && !wasAlignedX && !wasAlignedY) {
-        if (movingUp) {
-            return DOWN;
-        } else if (movingDown) {
-            return UP;
-        } else if (movingLeft) {
-            return RIGHT;
-        } else if (movingRight) {
-            return LEFT;
+    if (_wasCollidingHorizontally) {
+        if (alignedY && alignedX && !wasAlignedX && wasAlignedY) {
+            _wasCollidingHorizontally = true;
+            _wasCollidingVertically = false;
+            if (movingRight) {
+                return LEFT;
+            } else if (movingLeft) {
+                return RIGHT;
+            }
+        } else if (alignedX && alignedY && !wasAlignedY && wasAlignedX) {
+            _wasCollidingVertically = true;
+            _wasCollidingHorizontally = false;
+            if (movingDown) {
+                return UP;
+            } else if (movingUp) {
+                return DOWN;
+            }
+        } else if (alignedX && alignedY && !wasAlignedX && !wasAlignedY) {
+            if (movingUp && movingRight) {
+                _wasCollidingHorizontally = true;
+                _wasCollidingVertically = false;
+                return LEFT;
+            } else if (movingUp && movingLeft) {
+                _wasCollidingHorizontally = true;
+                _wasCollidingVertically = false;
+                return RIGHT;
+            } else if (movingDown && movingRight) {
+                _wasCollidingVertically = true;
+                _wasCollidingHorizontally = false;
+                return UP;
+            } else if (movingDown && movingLeft) {
+                _wasCollidingVertically = true;
+                _wasCollidingHorizontally = false;
+                return UP;
+            }
         }
-    } else if (alignedX && alignedY && !wasAlignedY && wasAlignedX) {
-        if (movingDown) {
-            return UP;
-        } else if (movingUp) {
-            return DOWN;
-        }
-    } else if (alignedY && alignedX && !wasAlignedX && wasAlignedY) {
-        if (movingRight) {
-            return LEFT;
-        } else if (movingLeft) {
-            return RIGHT;
+    } else {
+        if (alignedX && alignedY && !wasAlignedY && wasAlignedX) {
+            _wasCollidingVertically = true;
+            _wasCollidingHorizontally = false;
+            if (movingDown) {
+                return UP;
+            } else if (movingUp) {
+                return DOWN;
+            }
+        } else if (alignedY && alignedX && !wasAlignedX && wasAlignedY) {
+            _wasCollidingHorizontally = true;
+            _wasCollidingVertically = false;
+            if (movingRight) {
+                return LEFT;
+            } else if (movingLeft) {
+                return RIGHT;
+            }
+        } else if (alignedX && alignedY && !wasAlignedX && !wasAlignedY) {
+            if (movingDown && movingRight) {
+                _wasCollidingVertically = true;
+                _wasCollidingHorizontally = false;
+                return UP;
+            } else if (movingDown && movingLeft) {
+                _wasCollidingVertically = true;
+                _wasCollidingHorizontally = false;
+                return UP;
+            } else if (movingUp && movingRight) {
+                _wasCollidingHorizontally = true;
+                _wasCollidingVertically = false;
+                return LEFT;
+            } else if (movingUp && movingLeft) {
+                _wasCollidingHorizontally = true;
+                _wasCollidingVertically = false;
+                return RIGHT;
+            }
         }
     }
     
@@ -273,6 +326,18 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
         }
     }
     
+    if (_velocityX > MAX_VELOCITY_X) {
+        _velocityX = MAX_VELOCITY_X;
+    } else if (_velocityX < -MAX_VELOCITY_X) {
+        _velocityX = -MAX_VELOCITY_X;
+    }
+    
+    if (_velocityY > MAX_VELOCITY_Y) {
+        _velocityY = MAX_VELOCITY_Y;
+    } else if (_velocityY < -MAX_VELOCITY_Y) {
+        _velocityY = -MAX_VELOCITY_Y;
+    }
+    
     int collision = -1;
     _grounded = false;
     for (int i = 0; i < level->getNumberOfPlatforms(); i++) {
@@ -300,17 +365,7 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
         }
     }
     
-    if (_velocityX > MAX_VELOCITY_X) {
-        _velocityX = MAX_VELOCITY_X;
-    } else if (_velocityX < -MAX_VELOCITY_X) {
-        _velocityX = -MAX_VELOCITY_X;
-    }
-    
-    if (_velocityY > MAX_VELOCITY_Y) {
-        _velocityY = MAX_VELOCITY_Y;
-    } else if (_velocityY < -MAX_VELOCITY_Y) {
-        _velocityY = -MAX_VELOCITY_Y;
-    }
+    printf("WasCollidingVertically: %d, WasCollidingHorizontally: %d\n", _wasCollidingVertically, _wasCollidingHorizontally);
     
     _x += _velocityX;
     _y += _velocityY;

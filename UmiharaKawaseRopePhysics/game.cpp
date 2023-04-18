@@ -15,13 +15,15 @@ Level level;
 TextBox editorIndicator;
 TextBox editorMode;
 
-int editorCursorX = 0;
-int editorCursorY = 0;
+
 
 const int PLATFORM_WIDTH = 32;
 const int PLATFORM_HEIGHT = 32;
 const int MAP_WIDTH = 20;
 const int MAP_HEIGHT = 12;
+
+int editorCursorX = MAP_WIDTH / 2;
+int editorCursorY = MAP_HEIGHT / 2;
 
 bool gameInit() {
     editorIndicator.initFont();
@@ -110,13 +112,28 @@ bool gameUpdate(KeyboardLayout *keys) {
             editorCursorX += 1;
         }
         
+        if (editorCursorX < 0) {
+            editorCursorX = MAP_WIDTH - 1;
+        } else if (editorCursorX >= MAP_WIDTH) {
+            editorCursorX = 0;
+        }
+        
+        if (editorCursorY < 0) {
+            editorCursorY = MAP_HEIGHT - 1;
+        } else if (editorCursorY >= MAP_HEIGHT) {
+            editorCursorY = 0;
+        }
+        
         if (keys->getConfirmState()) {
             if (currentLevelEditorMode == PLATFORM) {
-                if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0) {
+                if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0 &&
+                    !(editorCursorX * PLATFORM_WIDTH == level.getStartX() && editorCursorY * PLATFORM_HEIGHT == level.getStartY())) {
                     level.addPlatform(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT);
                 }
             } else if (currentLevelEditorMode == START_POINT) {
-                level.setStartPos(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
+                if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0) {
+                    level.setStartPos(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
+                }
             }
         }
         
@@ -147,9 +164,13 @@ void gameDraw(SDL_Renderer* renderer) {
     if (currentGameState == GAME) {
         player.draw(renderer);
     } else if (currentGameState == LEVEL_EDITOR) {
-        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
-        SDL_Rect cursorRect = { editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_WIDTH, PLATFORM_WIDTH, PLATFORM_HEIGHT };
+        SDL_SetRenderDrawColor(renderer, (currentLevelEditorMode == PLATFORM) ? 0x00 : 0xFF, 0x00, (currentLevelEditorMode == PLATFORM) ? 0xFF : 0x00, 0xFF);
+        SDL_Rect cursorRect = { editorCursorX * PLATFORM_WIDTH - 1, editorCursorY * PLATFORM_WIDTH - 1, PLATFORM_WIDTH + 2, PLATFORM_HEIGHT + 2 };
         SDL_RenderDrawRect(renderer, &cursorRect);
+        
+        SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+        SDL_Rect startPosRect = { level.getStartX(), level.getStartY(), PLATFORM_WIDTH, PLATFORM_HEIGHT };
+        SDL_RenderFillRect(renderer, &startPosRect);
         
         editorIndicator.draw(renderer);
         editorMode.draw(renderer);

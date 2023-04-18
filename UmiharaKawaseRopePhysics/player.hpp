@@ -97,6 +97,9 @@ private:
     
     bool _canAirBlast;
     
+    bool _wasCollidingVertically;
+    bool _wasCollidingHorizontally;
+    
     GrappleSeeker *_grappleSeeker;
     Rope *_rope;
 };
