@@ -47,6 +47,8 @@ public:
     int getStartY();
     void setStartPos(int x, int y);
     
+    int platformExists(int x, int y);
+    
     void addPlatform(int x, int y, int w, int h);
     void removePlatform(int i);
     Platform *getPlatform(int i);

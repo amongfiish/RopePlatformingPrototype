@@ -23,6 +23,8 @@ public:
     TextBox();
     ~TextBox();
     
+    bool initFont();
+    
     void setColor(int r, int g, int b, int a);
     void setText(string text);
     

@@ -6,10 +6,11 @@ TextBox::TextBox() {
     _width = 0;
     _height = 0;
     
+    _font = NULL;
+    
     _previousText = "";
     _text = "";
     
-    _font = TTF_OpenFont("font.ttf", TEXT_SIZE);
     _renderedText = NULL;
 }
 
@@ -21,6 +22,17 @@ TextBox::~TextBox() {
     if (_font) {
         TTF_CloseFont(_font);
     }
+}
+
+bool TextBox::initFont() {
+    _font = TTF_OpenFont("font.ttf", TEXT_SIZE);
+    
+    if (!_font) {
+        printf("Couldn't open font. Error: %s\n", TTF_GetError());
+        return false;
+    }
+    
+    return true;
 }
 
 void TextBox::setColor(int r, int g, int b, int a) {

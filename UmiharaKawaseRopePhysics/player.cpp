@@ -125,15 +125,17 @@ int Player::checkCollision(Platform *p) {
         movingUp = true;
     }
     
+//    printf("AlignedX: %d, AlignedY: %d, WasAlignedX: %d, WasAlignedY: %d, Right: %d, Left %d, Up: %d, Down: %d\n", alignedX, alignedY, wasAlignedX, wasAlignedY, movingRight, movingLeft, movingUp, movingDown);
+    
     if (alignedX && alignedY && !wasAlignedX && !wasAlignedY) {
-        if (movingLeft) {
-            return RIGHT;
-        } else if (movingRight) {
-            return LEFT;
-        } else if (movingUp) {
+        if (movingUp) {
             return DOWN;
         } else if (movingDown) {
             return UP;
+        } else if (movingLeft) {
+            return RIGHT;
+        } else if (movingRight) {
+            return LEFT;
         }
     } else if (alignedX && alignedY && !wasAlignedY && wasAlignedX) {
         if (movingDown) {

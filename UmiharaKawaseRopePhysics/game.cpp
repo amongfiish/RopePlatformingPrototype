@@ -12,31 +12,57 @@ int currentLevelEditorMode = PLATFORM;
 Player player;
 Level level;
 
-TextBox mousePos;
-TextBox platformSize;
+TextBox editorIndicator;
 TextBox editorMode;
 
+int editorCursorX = 0;
+int editorCursorY = 0;
+
+const int PLATFORM_WIDTH = 32;
+const int PLATFORM_HEIGHT = 32;
+const int MAP_WIDTH = 20;
+const int MAP_HEIGHT = 12;
+
 bool gameInit() {
-    // top wall
-    level.addPlatform(0, -132, 600, 32);
-    // left wall
-    level.addPlatform(0, -100, 32, 500);
-    // right wall
-    level.addPlatform(568, -100, 32, 500);
-    // bottom left 'ground'
-    level.addPlatform(32, 368, 96, 32);
-    // bottom right 'ground'
-    level.addPlatform(472, 368, 96, 32);
-    // middle platform
-    level.addPlatform(224, 200, 144, 32);
-    // top square
-    level.addPlatform(352, 0, 32, 32);
-    // top right platform
-    level.addPlatform(482, 96, 96, 32);
-    // bottom right intermediate platform
-    level.addPlatform(536, 268, 32, 32);
+    editorIndicator.initFont();
+    editorMode.initFont();
     
-    level.setStartPos(32, 336);
+    editorIndicator.setText("EDITOR");
+    editorIndicator.setColor(0x00, 0xFF, 0x00, 0xFF);
+    editorIndicator.setX(10);
+    editorIndicator.setY(5);
+    editorIndicator.setWidth(64);
+    editorIndicator.setHeight(32);
+    
+    editorMode.setColor(0x00, 0xFF, 0x00, 0xFF);
+    editorMode.setX(10);
+    editorMode.setY(42);
+    editorMode.setWidth(128);
+    editorMode.setHeight(32);
+    
+//    // top wall
+//    level.addPlatform(0, -132, 600, 32);
+//    // left wall
+//    level.addPlatform(0, -100, 32, 500);
+//    // right wall
+//    level.addPlatform(568, -100, 32, 500);
+//    // bottom left 'ground'
+//    level.addPlatform(32, 368, 96, 32);
+//    // bottom right 'ground'
+//    level.addPlatform(472, 368, 96, 32);
+//    // middle platform
+//    level.addPlatform(224, 200, 144, 32);
+//    // top square
+//    level.addPlatform(352, 0, 32, 32);
+//    // top right platform
+//    level.addPlatform(482, 96, 96, 32);
+//    // bottom right intermediate platform
+//    level.addPlatform(536, 268, 32, 32);
+    
+    
+    level.addPlatform(PLATFORM_WIDTH, PLATFORM_HEIGHT * 11, PLATFORM_WIDTH, PLATFORM_HEIGHT);
+    
+    level.setStartPos(PLATFORM_WIDTH, PLATFORM_HEIGHT * 10);
     
     player.setPos(level.getStartX(), level.getStartY());
     
@@ -48,10 +74,68 @@ void gameCleanUp() {
 }
 
 bool gameUpdate(KeyboardLayout *keys) {
+    if (keys->getPlayToggleState() == PRESSED) {
+        if (currentGameState == GAME) {
+            currentGameState = LEVEL_EDITOR;
+        } else {
+            currentGameState = GAME;
+            player.setPos(level.getStartX(), level.getStartY());
+            player.destroyRope();
+            player.destroyGrappleSeeker();
+            player.stop();
+        }
+    }
+    
     if (currentGameState == GAME) {
         player.update(keys, &level);
     } else if (currentGameState == LEVEL_EDITOR) {
+        if (keys->getNextEditorModeState() == PRESSED) {
+            currentLevelEditorMode++;
+        }
+        if (keys->getPreviousEditorModeState() == PRESSED) {
+            currentLevelEditorMode--;
+        }
         
+        if (keys->getUpState() == PRESSED) {
+            editorCursorY -= 1;
+        }
+        if (keys->getDownState() == PRESSED) {
+            editorCursorY += 1;
+        }
+        
+        if (keys->getLeftState() == PRESSED) {
+            editorCursorX -= 1;
+        }
+        if (keys->getRightState() == PRESSED) {
+            editorCursorX += 1;
+        }
+        
+        if (keys->getConfirmState()) {
+            if (currentLevelEditorMode == PLATFORM) {
+                if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0) {
+                    level.addPlatform(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT);
+                }
+            } else if (currentLevelEditorMode == START_POINT) {
+                level.setStartPos(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
+            }
+        }
+        
+        if (keys->getBackState()) {
+            if (currentLevelEditorMode == PLATFORM) {
+                int platform = level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
+                if (platform >= 0) {
+                    level.removePlatform(platform);
+                }
+            }
+        }
+        
+        if (currentLevelEditorMode >= NUMBER_OF_EDITOR_MODES) {
+            currentLevelEditorMode = 0;
+        } else if (currentLevelEditorMode < 0) {
+            currentLevelEditorMode = NUMBER_OF_EDITOR_MODES - 1;
+        }
+        
+        editorMode.setText("EDITING: " + EDITOR_MODE_STRINGS[currentLevelEditorMode]);
     }
     
     return true;
@@ -63,6 +147,11 @@ void gameDraw(SDL_Renderer* renderer) {
     if (currentGameState == GAME) {
         player.draw(renderer);
     } else if (currentGameState == LEVEL_EDITOR) {
+        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
+        SDL_Rect cursorRect = { editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_WIDTH, PLATFORM_WIDTH, PLATFORM_HEIGHT };
+        SDL_RenderDrawRect(renderer, &cursorRect);
         
+        editorIndicator.draw(renderer);
+        editorMode.draw(renderer);
     }
 }

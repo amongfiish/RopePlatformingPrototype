@@ -9,7 +9,9 @@
 #include <SDL.h>
 #endif
 
+#include <string>
 #include "controls.hpp"
+using namespace std;
 
 enum GameMode {
     GAME,
@@ -18,9 +20,16 @@ enum GameMode {
 
 enum LevelEditorMode {
     PLATFORM,
-    START_POINT,
-    END_POINT
+    START_POINT
 };
+
+constexpr int NUMBER_OF_EDITOR_MODES = 2;
+
+const string EDITOR_MODE_STRINGS[2] = {
+    "PLATFORM",
+    "START POINT"
+};
+
 
 bool gameInit();
 void gameCleanUp();

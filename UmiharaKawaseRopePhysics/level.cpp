@@ -76,6 +76,16 @@ void load() {
     
 }
 
+int Level::platformExists(int x, int y) {
+    for (int i = 0; i < _numberOfPlatforms; i++) {
+        if (_platforms[i].getX() == x && _platforms[i].getY() == y) {
+            return i;
+        }
+    }
+    
+    return -1;
+}
+
 int Level::getStartX() {
     return _startX;
 }

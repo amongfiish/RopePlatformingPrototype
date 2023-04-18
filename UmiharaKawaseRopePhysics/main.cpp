@@ -2,10 +2,12 @@
 
 #ifdef __APPLE__
 #include <SDL2/SDL.h>
+#include <SDL2_ttf/SDL_ttf.h>
 #endif
 
 #ifdef _WIN64
 #include <SDL.h>
+#include <SDL_ttf.h>
 #endif
 
 #include "game.hpp"
@@ -19,8 +21,8 @@ MouseState mouseState;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 
-const int WINDOW_WIDTH = 600;
-const int WINDOW_HEIGHT = 400;
+const int WINDOW_WIDTH = 640;
+const int WINDOW_HEIGHT = 384;
 
 const int FPS = 60;
 
@@ -95,6 +97,11 @@ int main(int argc, char* argv[]) {
 bool init() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("Couldn't initialize SDL. Error: %s\n", SDL_GetError());
+        return false;
+    }
+    
+    if (TTF_Init() < 0) {
+        printf("Couldn't initialize TTF. Error: %s\n", SDL_GetError());
         return false;
     }
     
