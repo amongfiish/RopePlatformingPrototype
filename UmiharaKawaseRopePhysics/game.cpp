@@ -4,7 +4,7 @@
 #include "text.hpp"
 using namespace std;
 
-const string VERSION = "indev 1-2";
+const string VERSION = "indev 2-3";
 
 int currentGameState = GAME;
 int currentLevelEditorMode = PLATFORM;
@@ -15,17 +15,12 @@ Level level;
 TextBox editorIndicator;
 TextBox editorMode;
 
-
-
-const int PLATFORM_WIDTH = 32;
-const int PLATFORM_HEIGHT = 32;
-const int MAP_WIDTH = 20;
-const int MAP_HEIGHT = 12;
-
 int editorCursorX = MAP_WIDTH / 2;
 int editorCursorY = MAP_HEIGHT / 2;
 
 bool gameInit() {
+    level.load("level");
+    
     editorIndicator.initFont();
     editorMode.initFont();
     
@@ -42,37 +37,16 @@ bool gameInit() {
     editorMode.setWidth(128);
     editorMode.setHeight(32);
     
-//    // top wall
-//    level.addPlatform(0, -132, 600, 32);
-//    // left wall
-//    level.addPlatform(0, -100, 32, 500);
-//    // right wall
-//    level.addPlatform(568, -100, 32, 500);
-//    // bottom left 'ground'
-//    level.addPlatform(32, 368, 96, 32);
-//    // bottom right 'ground'
-//    level.addPlatform(472, 368, 96, 32);
-//    // middle platform
-//    level.addPlatform(224, 200, 144, 32);
-//    // top square
-//    level.addPlatform(352, 0, 32, 32);
-//    // top right platform
-//    level.addPlatform(482, 96, 96, 32);
-//    // bottom right intermediate platform
-//    level.addPlatform(536, 268, 32, 32);
-    
-    
-    level.addPlatform(PLATFORM_WIDTH, PLATFORM_HEIGHT * 11, PLATFORM_WIDTH, PLATFORM_HEIGHT);
-    
-    level.setStartPos(PLATFORM_WIDTH, PLATFORM_HEIGHT * 10);
-    
     player.setPos(level.getStartX(), level.getStartY());
     
     return true;
 }
 
 void gameCleanUp() {
+    player.destroyGrappleSeeker();
     player.destroyRope();
+    
+    level.save("level");
 }
 
 bool gameUpdate(KeyboardLayout *keys) {

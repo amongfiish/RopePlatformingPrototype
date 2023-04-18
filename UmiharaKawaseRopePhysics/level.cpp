@@ -1,3 +1,6 @@
+#include <iostream>
+#include <fstream>
+
 #include "level.hpp"
 
 Platform::Platform() {
@@ -146,4 +149,43 @@ void Level::draw(SDL_Renderer *renderer) {
     for (int i = 0; i < _numberOfPlatforms; i++) {
         _platforms[i].draw(renderer);
     }
+}
+
+void Level::save(string filename) {
+    ofstream file;
+    file.open(filename);
+    
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (platformExists(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT) >= 0) {
+                file.put('1');
+            } else if (_startX == x * PLATFORM_WIDTH && _startY == y * PLATFORM_HEIGHT) {
+                file.put('2');
+            } else {
+                file.put('0');
+            }
+        }
+    }
+    
+    file.close();
+}
+
+void Level::load(string filename) {
+    ifstream file;
+    file.open(filename, ios::in);
+    
+    char currentPos;
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            file.get(currentPos);
+            printf("%c\n", currentPos);
+            if (currentPos == '1') {
+                addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT);
+            } else if (currentPos == '2') {
+                setStartPos(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
+            }
+        }
+    }
+    
+    file.close();
 }

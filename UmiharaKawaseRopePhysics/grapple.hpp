@@ -11,8 +11,8 @@ enum CORNERS {
     BOTTOM_RIGHT
 };
 
-const int MIN_ROPE_LENGTH = 8;
-const int MAX_ROPE_LENGTH = 150;
+const int MIN_ROPE_LENGTH = 16;
+const int MAX_ROPE_LENGTH = 160;
 
 const double STRETCH_ACCELERATION = 0.02;
 const double SLACK_CHANGE_SPEED = 4;

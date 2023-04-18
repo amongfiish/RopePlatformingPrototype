@@ -9,6 +9,15 @@
 #include <SDL.h>
 #endif
 
+#include <string>
+using namespace std;
+
+const int PLATFORM_WIDTH = 32;
+const int PLATFORM_HEIGHT = 32;
+const int MAP_WIDTH = 25;
+const int MAP_HEIGHT = 15;
+const int LEVEL_BOTTOM = 480;
+
 class Platform {
 public:
     Platform();
@@ -56,6 +65,9 @@ public:
     int getNumberOfPlatforms();
     
     void draw(SDL_Renderer *renderer);
+    
+    void save(string filename);
+    void load(string filename);
     
 private:
     int _startX;

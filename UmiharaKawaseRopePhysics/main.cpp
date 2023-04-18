@@ -21,8 +21,8 @@ MouseState mouseState;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 
-const int WINDOW_WIDTH = 640;
-const int WINDOW_HEIGHT = 384;
+const int WINDOW_WIDTH = 800;
+const int WINDOW_HEIGHT = 480;
 
 const int FPS = 60;
 

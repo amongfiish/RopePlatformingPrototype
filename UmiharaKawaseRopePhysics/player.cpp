@@ -8,8 +8,8 @@
 Player::Player() {
     _x = 0;
     _x = 0;
-    _width = PLAYER_WIDTH;
-    _height = PLAYER_HEIGHT;
+    _width = PLATFORM_WIDTH;
+    _height = PLATFORM_HEIGHT;
     
     _grappleSeeker = NULL;
     _rope = NULL;
@@ -79,128 +79,29 @@ Rope *Player::getRope() {
     return _rope;
 }
 
+bool rectsOverlap(double x1, double y1, int w1, int h1, double x2, double y2, int w2, int h2) {
+    if (x1 > x2 - w1 && x1 < x2 + w2 &&   // aligned x
+        y1 > y2 - h1 && y1 < y2 + h2) {   // aligned y
+        return true;
+    }
+    
+    return false;
+}
+
 int Player::checkCollision(Platform *p) {
-    bool wasAlignedX = false;
-    bool wasAlignedY = false;
-    bool alignedX = false;
-    bool alignedY = false;
-    
-    bool movingRight = false;
-    bool movingLeft = false;
-    bool movingUp = false;
-    bool movingDown = false;
-    
-    if (_y + _height > p->getY() &&
-        _y < p->getY() + p->getHeight()) {
-        wasAlignedY = true;
-    }
-    
-    if (_y + _velocityY + _height > p->getY() &&
-        _y + _velocityY < p->getY() + p->getHeight()) {
-        // player is aligned on y axis
-        alignedY = true;
-    }
-    
-    if (_x + _width > p->getX() &&
-        _x < p->getX() + p->getWidth()) {
-        wasAlignedX = true;
-    }
-    
-    if (_x + _velocityX + _width > p->getX() &&
-        _x + _velocityX < p->getX() + p->getWidth()) {
-        // player is aligned on x axis
-        alignedX = true;
-    }
-    
-    if (_velocityX > 0) {
-        // the player is moving right
-        movingRight = true;
-    } else if (_velocityX < 0) {
-        // the player is moving left
-        movingLeft = true;
-    }
-    
-    if (_velocityY > 0) {
-        // the player is moving down
-        movingDown = true;
-    } else if (_velocityY < 0) {
-        // the player is moving up
-        movingUp = true;
-    }
-    
-//    printf("AlignedX: %d, AlignedY: %d, WasAlignedX: %d, WasAlignedY: %d, Right: %d, Left %d, Up: %d, Down: %d\n", alignedX, alignedY, wasAlignedX, wasAlignedY, movingRight, movingLeft, movingUp, movingDown);
-    
-    if (_wasCollidingHorizontally) {
-        if (alignedY && alignedX && !wasAlignedX && wasAlignedY) {
-            _wasCollidingHorizontally = true;
-            _wasCollidingVertically = false;
-            if (movingRight) {
-                return LEFT;
-            } else if (movingLeft) {
-                return RIGHT;
-            }
-        } else if (alignedX && alignedY && !wasAlignedY && wasAlignedX) {
-            _wasCollidingVertically = true;
-            _wasCollidingHorizontally = false;
-            if (movingDown) {
-                return UP;
-            } else if (movingUp) {
-                return DOWN;
-            }
-        } else if (alignedX && alignedY && !wasAlignedX && !wasAlignedY) {
-            if (movingUp && movingRight) {
-                _wasCollidingHorizontally = true;
-                _wasCollidingVertically = false;
-                return LEFT;
-            } else if (movingUp && movingLeft) {
-                _wasCollidingHorizontally = true;
-                _wasCollidingVertically = false;
-                return RIGHT;
-            } else if (movingDown && movingRight) {
-                _wasCollidingVertically = true;
-                _wasCollidingHorizontally = false;
-                return UP;
-            } else if (movingDown && movingLeft) {
-                _wasCollidingVertically = true;
-                _wasCollidingHorizontally = false;
-                return UP;
-            }
+    if (rectsOverlap(_x + _velocityX, _y, _width, _height, p->getX(), p->getY(), p->getWidth(), p->getHeight())) {
+        if (_velocityX > 0) {
+            return LEFT;
+        } else if (_velocityX < 0) {
+            return RIGHT;
         }
-    } else {
-        if (alignedX && alignedY && !wasAlignedY && wasAlignedX) {
-            _wasCollidingVertically = true;
-            _wasCollidingHorizontally = false;
-            if (movingDown) {
-                return UP;
-            } else if (movingUp) {
-                return DOWN;
-            }
-        } else if (alignedY && alignedX && !wasAlignedX && wasAlignedY) {
-            _wasCollidingHorizontally = true;
-            _wasCollidingVertically = false;
-            if (movingRight) {
-                return LEFT;
-            } else if (movingLeft) {
-                return RIGHT;
-            }
-        } else if (alignedX && alignedY && !wasAlignedX && !wasAlignedY) {
-            if (movingDown && movingRight) {
-                _wasCollidingVertically = true;
-                _wasCollidingHorizontally = false;
-                return UP;
-            } else if (movingDown && movingLeft) {
-                _wasCollidingVertically = true;
-                _wasCollidingHorizontally = false;
-                return UP;
-            } else if (movingUp && movingRight) {
-                _wasCollidingHorizontally = true;
-                _wasCollidingVertically = false;
-                return LEFT;
-            } else if (movingUp && movingLeft) {
-                _wasCollidingHorizontally = true;
-                _wasCollidingVertically = false;
-                return RIGHT;
-            }
+    }
+    
+    if (rectsOverlap(_x, _y + _velocityY, _width, _height, p->getX(), p->getY(), p->getWidth(), p->getHeight())) {
+        if (_velocityY > 0) {
+            return UP;
+        } else if (_velocityY < 0) {
+            return DOWN;
         }
     }
     
@@ -345,7 +246,7 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
         switch (collision) {
             case UP:
                 _velocityY = 0;
-                _y = level->getPlatform(i)->getY() - _width;
+                _y = level->getPlatform(i)->getY() - _height;
                 _grounded = true;
                 break;
             case DOWN:
@@ -364,8 +265,6 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
                 break;
         }
     }
-    
-    printf("WasCollidingVertically: %d, WasCollidingHorizontally: %d\n", _wasCollidingVertically, _wasCollidingHorizontally);
     
     _x += _velocityX;
     _y += _velocityY;
@@ -427,7 +326,7 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
         }
     }
     
-    if (_y > LEVEL_BOTTOM && !_rope && !_grappleSeeker) {
+    if ((_x + _width + 1 < 0 || _x > MAP_WIDTH * PLATFORM_WIDTH || _y + _height + 1 < 0 || _y > MAP_HEIGHT * PLATFORM_HEIGHT) && !_rope && !_grappleSeeker) {
         _x = level->getStartX();
         _y = level->getStartY();
         stop();

@@ -187,6 +187,15 @@ CollisionReport *GrappleSeeker::collide(Platform *p) {
     return closestCollision;
 }
 
+//bool rectsOverlap(double x1, double y1, int w1, int h1, double x2, double y2, int w2, int h2) {
+//    if (x1 > x2 - w1 && x1 < x2 + w2 &&   // aligned x
+//        y1 > y2 - h1 && y1 < y2 + h2) {   // aligned y
+//        return true;
+//    }
+//
+//    return false;
+//}
+
 bool GrappleSeeker::seek(Level *level) {
     CollisionReportContainer container;
     
@@ -263,17 +272,27 @@ bool GrappleSeeker::seek(Level *level) {
         }
     }
     
-    if (closestCollision->getIntersectionX() == closestCollision->getPlatform()->getX()) {
-        _player->createRope(closestCollision->getIntersectionX() - 2, closestCollision->getIntersectionY());
-    } else if (closestCollision->getIntersectionX() == closestCollision->getPlatform()->getX() + closestCollision->getPlatform()->getWidth()) {
-        _player->createRope(closestCollision->getIntersectionX() + 1, closestCollision->getIntersectionY());
+    double x = closestCollision->getIntersectionX();
+    double y = closestCollision->getIntersectionY();
+    
+    while (rectsOverlap(x - 1, y - 1, 2, 2, closestCollision->getPlatform()->getX(), closestCollision->getPlatform()->getY(), closestCollision->getPlatform()->getWidth(), closestCollision->getPlatform()->getHeight())) {
+        x -= _velocityX / 10;
+        y -= _velocityY / 10;
     }
     
-    if (closestCollision->getIntersectionY() == closestCollision->getPlatform()->getY()) {
-        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() - 2);
-    } else if (closestCollision->getIntersectionY() == closestCollision->getPlatform()->getY() + closestCollision->getPlatform()->getHeight()) {
-        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() + 1);
-    }
+//    if (closestCollision->getIntersectionX() == closestCollision->getPlatform()->getX()) {
+//        _player->createRope(closestCollision->getIntersectionX() - 2, closestCollision->getIntersectionY());
+//    } else if (closestCollision->getIntersectionX() == closestCollision->getPlatform()->getX() + closestCollision->getPlatform()->getWidth()) {
+//        _player->createRope(closestCollision->getIntersectionX() + 1, closestCollision->getIntersectionY());
+//    }
+//
+//    if (closestCollision->getIntersectionY() == closestCollision->getPlatform()->getY()) {
+//        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() - 2);
+//    } else if (closestCollision->getIntersectionY() == closestCollision->getPlatform()->getY() + closestCollision->getPlatform()->getHeight()) {
+//        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() + 1);
+//    }
+    
+    _player->createRope(x, y);
     
     if (_numberOfPivots > 0) {
         Pivot *playerRopePivots = _player->getRope()->getPivots();
@@ -319,10 +338,15 @@ int GrappleSeeker::wrapCorners(Level *level) {
             bool top = false;
             bool bottom = false;
             
-            bool onLeft = false;
-            bool onRight = false;
-            bool onTop = false;
-            bool onBottom = false;
+            bool playerLeft = false;
+            bool playerRight = false;
+            bool playerTop = false;
+            bool playerBottom = false;
+            
+            bool platformLeft = false;
+            bool platformRight = false;
+            bool platformTop = false;
+            bool platformBottom = false;
             
             bool movingLeft = false;
             bool movingRight = false;
@@ -342,15 +366,27 @@ int GrappleSeeker::wrapCorners(Level *level) {
             }
             
             if (_x < _player->getX()) {
-                onLeft = true;
-            } else if (_x > _player->getX()) {
-                onRight = true;
+                playerLeft = true;
+            } else if (_x > _player->getX() + _player->getWidth()) {
+                playerRight = true;
             }
             
             if (_y < _player->getY()) {
-                onTop = true;
-            } else if (_y > _player->getY()) {
-                onBottom = true;
+                playerTop = true;
+            } else if (_y > _player->getY() + _player->getHeight()) {
+                playerBottom = true;
+            }
+            
+            if (_x < rx) {
+                platformLeft = true;
+            } else if (_x > rx + rw) {
+                platformRight = true;
+            }
+            
+            if (_y < ry) {
+                platformTop = true;
+            } else if (_y > ry + rh) {
+                platformBottom = true;
             }
             
             if (_player->getVelocityX() > 0) {
@@ -365,33 +401,33 @@ int GrappleSeeker::wrapCorners(Level *level) {
                 movingUp = true;
             }
             
-            printf("player velocity x: %f, player velocity y: %f\n", _player->getVelocityX(), _player->getVelocityY());
-            printf("left: %d, right: %d, top: %d, bottom: %d, movingLeft: %d, movingRight: %d, movingUp: %d, movingDown: %d\n", left, right, top, bottom, movingLeft, movingRight, movingUp, movingDown);
-            printf("onLeft: %d, onRight: %d, onTop: %d, onBottom: %d\n", onLeft, onRight, onTop, onBottom);
+//            printf("player velocity x: %f, player velocity y: %f\n", _player->getVelocityX(), _player->getVelocityY());
+//            printf("left: %d, right: %d, top: %d, bottom: %d, movingLeft: %d, movingRight: %d, movingUp: %d, movingDown: %d\n", left, right, top, bottom, movingLeft, movingRight, movingUp, movingDown);
+//            printf("onLeft: %d, onRight: %d, onTop: %d, onBottom: %d\n", onLeft, onRight, onTop, onBottom);
             
             bool valuesSet = false;
-            if ((left && !bottom && movingUp && onRight) || (bottom && !left && movingRight && onTop)) {    // left/~bottom and bottom/~left
+            if ((left && !bottom && movingUp && playerRight && !playerTop && platformBottom) || (bottom && !left && movingRight && playerTop && !playerRight && platformLeft)) {    // left/~bottom and bottom/~left
                 // pivot @ bottom left
                 _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
                 _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
                 _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
                 _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
                 valuesSet = true;
-            } else if ((top && !right && movingLeft && onBottom && !onLeft) || (right && !top && movingDown && onLeft && !onBottom)) {    // top/~right and right/~top
+            } else if ((top && !right && movingLeft && playerBottom && !playerLeft && platformRight) || (right && !top && movingDown && playerLeft && !playerBottom && platformTop)) {    // top/~right and right/~top
                 // pivot @ top right
                 _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
                 _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
                 _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth());
                 _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
                 valuesSet = true;
-            } else if ((left && !top && movingDown && onRight && !onBottom) || (top && !left && movingRight && onBottom && !onRight)) {   // left/~top and top/~left
+            } else if ((left && !top && movingDown && playerRight && !playerBottom && platformTop) || (top && !left && movingRight && playerBottom && !playerRight && platformLeft)) {   // left/~top and top/~left
                 // pivot @ top left
                 _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
                 _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
                 _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
                 _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
                 valuesSet = true;
-            } else if ((right && !bottom && movingUp && onLeft && !onTop) || (bottom && !right && movingLeft && onTop && !onLeft)) {  // right/~bottom and bottom/~right
+            } else if ((right && !bottom && movingUp && playerLeft && !playerTop && platformBottom) || (bottom && !right && movingLeft && playerTop && !playerLeft && platformLeft)) {  // right/~bottom and bottom/~right
                 // pivot @ bottom right
                 _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
                 _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
@@ -399,14 +435,14 @@ int GrappleSeeker::wrapCorners(Level *level) {
                 _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
                 valuesSet = true;
             } else if (top && movingDown) {
-                if (onLeft) {
+                if (playerLeft) {
                     // pivot @ top left
                     _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
                     _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
                     _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
                     _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
                     valuesSet = true;
-                } else if (onRight) {
+                } else if (playerRight) {
                     // pivot @ top right
                     _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
                     _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
@@ -415,14 +451,14 @@ int GrappleSeeker::wrapCorners(Level *level) {
                     valuesSet = true;
                 }
             } else if (bottom && movingUp) {
-                if (onLeft) {
+                if (playerLeft) {
                     // pivot @ bottom left
                     _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
                     _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
                     _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
                     _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
                     valuesSet = true;
-                } else if (onRight) {
+                } else if (playerRight) {
                     // pivot @ bottom right
                     _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
                     _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
@@ -431,14 +467,14 @@ int GrappleSeeker::wrapCorners(Level *level) {
                     valuesSet = true;
                 }
             } else if (left && movingRight) {
-                if (onTop) {
+                if (playerTop) {
                     // pivot @ top left
                     _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
                     _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
                     _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
                     _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
                     valuesSet = true;
-                } else if (onBottom) {
+                } else if (playerBottom) {
                     // pivot @ bottom left
                     _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
                     _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
@@ -447,14 +483,14 @@ int GrappleSeeker::wrapCorners(Level *level) {
                     valuesSet = true;
                 }
             } else if (right && movingLeft) {
-                if (onTop) {
+                if (playerTop) {
                     // pivot @ top right
                     _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
                     _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
                     _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth());
                     _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
                     valuesSet = true;
-                } else if (onBottom) {
+                } else if (playerBottom) {
                     // pivot @ bottom right
                     _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
                     _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
