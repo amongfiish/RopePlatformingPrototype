@@ -54,6 +54,8 @@ bool gameUpdate(KeyboardLayout *keys) {
         if (currentGameState == GAME) {
             currentGameState = LEVEL_EDITOR;
         } else {
+            level.saveLevel("level");
+            
             currentGameState = GAME;
             player.setPos(level.getStartX(), level.getStartY());
             player.destroyRope();

@@ -16,7 +16,6 @@ const int PLATFORM_WIDTH = 32;
 const int PLATFORM_HEIGHT = 32;
 const int MAP_WIDTH = 25;
 const int MAP_HEIGHT = 15;
-const int LEVEL_BOTTOM = 480;
 
 class Platform {
 public:

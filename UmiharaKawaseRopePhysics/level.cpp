@@ -178,7 +178,7 @@ void Level::loadLevel(string filename) {
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
             file.get(currentPos);
-            printf("%c\n", currentPos);
+            
             if (currentPos == '1') {
                 addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT);
             } else if (currentPos == '2') {

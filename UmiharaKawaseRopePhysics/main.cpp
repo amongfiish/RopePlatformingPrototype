@@ -11,6 +11,7 @@
 #endif
 
 #include "game.hpp"
+#include "level.hpp"
 #include "controls.hpp"
 using namespace std;
 
@@ -21,8 +22,8 @@ MouseState mouseState;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 480;
+const int WINDOW_WIDTH = MAP_WIDTH * PLATFORM_WIDTH;
+const int WINDOW_HEIGHT = MAP_HEIGHT * PLATFORM_HEIGHT;
 
 const int FPS = 60;
 
