@@ -1,18 +1,12 @@
 #include <cmath>
 
 #include "grapple.hpp"
+#include "player.hpp"
 
 #ifdef _WIN64
 #define M_PI_2 M_PI/2
 #define M_PI_4 M_PI/4
 #endif
-
-const double STRETCH_ACCELERATION = 0.02;
-const double SLACK_CHANGE_SPEED = 4;
-const double SEEK_SPEED = 8;
-const double RETRACT_SPEED = 12;
-
-const int GRAPPLE_RECT_HALF_WIDTH = 5;
 
 // from the internet. see definition at the bottom of this file (modified)
 CollisionReportContainer *getLineRectangleCollision(float x1, float y1, float x2, float y2, float rx, float ry, float rw, float rh);
@@ -325,6 +319,11 @@ int GrappleSeeker::wrapCorners(Level *level) {
             bool top = false;
             bool bottom = false;
             
+            bool onLeft = false;
+            bool onRight = false;
+            bool onTop = false;
+            bool onBottom = false;
+            
             bool movingLeft = false;
             bool movingRight = false;
             bool movingUp = false;
@@ -342,6 +341,18 @@ int GrappleSeeker::wrapCorners(Level *level) {
                 bottom = true;
             }
             
+            if (_x < _player->getX()) {
+                onLeft = true;
+            } else if (_x > _player->getX()) {
+                onRight = true;
+            }
+            
+            if (_y < _player->getY()) {
+                onTop = true;
+            } else if (_y > _player->getY()) {
+                onBottom = true;
+            }
+            
             if (_player->getVelocityX() > 0) {
                 movingRight = true;
             } else if (_player->getVelocityX() < 0) {
@@ -354,57 +365,131 @@ int GrappleSeeker::wrapCorners(Level *level) {
                 movingUp = true;
             }
             
+            printf("player velocity x: %f, player velocity y: %f\n", _player->getVelocityX(), _player->getVelocityY());
+            printf("left: %d, right: %d, top: %d, bottom: %d, movingLeft: %d, movingRight: %d, movingUp: %d, movingDown: %d\n", left, right, top, bottom, movingLeft, movingRight, movingUp, movingDown);
+            printf("onLeft: %d, onRight: %d, onTop: %d, onBottom: %d\n", onLeft, onRight, onTop, onBottom);
             
-            if ((left && !bottom && movingUp) || (bottom && !left && movingRight)) {    // left/~bottom and bottom/~left
+            bool valuesSet = false;
+            if ((left && !bottom && movingUp && onRight) || (bottom && !left && movingRight && onTop)) {    // left/~bottom and bottom/~left
                 // pivot @ bottom left
                 _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
                 _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
                 _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
                 _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
-            } else if ((top && !right && movingLeft) || (right && !top && movingDown)) {    // top/~right and right/~top
+                valuesSet = true;
+            } else if ((top && !right && movingLeft && onBottom && !onLeft) || (right && !top && movingDown && onLeft && !onBottom)) {    // top/~right and right/~top
                 // pivot @ top right
                 _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
                 _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
                 _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth());
                 _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
-            } else if ((left && !top && movingDown) || (top && !left && movingRight)) {   // left/~top and top/~left
+                valuesSet = true;
+            } else if ((left && !top && movingDown && onRight && !onBottom) || (top && !left && movingRight && onBottom && !onRight)) {   // left/~top and top/~left
                 // pivot @ top left
                 _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
                 _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
                 _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
                 _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
-            } else if ((right && !bottom && movingUp) || (bottom && !right && movingLeft)) {  // right/~bottom and bottom/~right
+                valuesSet = true;
+            } else if ((right && !bottom && movingUp && onLeft && !onTop) || (bottom && !right && movingLeft && onTop && !onLeft)) {  // right/~bottom and bottom/~right
                 // pivot @ bottom right
                 _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
                 _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
                 _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth());
                 _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
-            }
-            
-            double diffX;
-            double diffY;
-            
-            if (_numberOfPivots) {
-                diffX = _pivots[_numberOfPivots - 1].getX() - _pivots[_numberOfPivots].getX();
-                diffY = _pivots[_numberOfPivots - 1].getY() - _pivots[_numberOfPivots].getY();
-            } else {
-                diffX = _x - _pivots[_numberOfPivots].getX();
-                diffY = _y - _pivots[_numberOfPivots].getY();
-            }
-    
-            _pivots[_numberOfPivots].setAttachAngle(atan2(diffY, diffX));
-    
-            _numberOfPivots++;
-            if (_numberOfPivots >= _pivotsCapacity) {
-                _pivotsCapacity *= 2;
-                Pivot *newPivots = new Pivot[_pivotsCapacity];
-                for (int i = 0; i < _numberOfPivots; i++) {
-                    newPivots[i].setX(_pivots[i].getX());
-                    newPivots[i].setY(_pivots[i].getY());
+                valuesSet = true;
+            } else if (top && movingDown) {
+                if (onLeft) {
+                    // pivot @ top left
+                    _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
+                    _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
+                    _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
+                    _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
+                    valuesSet = true;
+                } else if (onRight) {
+                    // pivot @ top right
+                    _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
+                    _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
+                    _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth());
+                    _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
+                    valuesSet = true;
                 }
-                delete[] _pivots;
+            } else if (bottom && movingUp) {
+                if (onLeft) {
+                    // pivot @ bottom left
+                    _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
+                    _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
+                    _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
+                    _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
+                    valuesSet = true;
+                } else if (onRight) {
+                    // pivot @ bottom right
+                    _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
+                    _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
+                    _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth());
+                    _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
+                    valuesSet = true;
+                }
+            } else if (left && movingRight) {
+                if (onTop) {
+                    // pivot @ top left
+                    _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
+                    _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
+                    _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
+                    _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
+                    valuesSet = true;
+                } else if (onBottom) {
+                    // pivot @ bottom left
+                    _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() - 2);
+                    _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
+                    _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
+                    _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
+                    valuesSet = true;
+                }
+            } else if (right && movingLeft) {
+                if (onTop) {
+                    // pivot @ top right
+                    _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
+                    _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() - 2);
+                    _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth());
+                    _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
+                    valuesSet = true;
+                } else if (onBottom) {
+                    // pivot @ bottom right
+                    _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
+                    _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
+                    _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth());
+                    _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight());
+                    valuesSet = true;
+                }
+            }
+            
+            if (valuesSet) {
+                double diffX;
+                double diffY;
                 
-                _pivots = newPivots;
+                if (_numberOfPivots) {
+                    diffX = _pivots[_numberOfPivots - 1].getX() - _pivots[_numberOfPivots].getX();
+                    diffY = _pivots[_numberOfPivots - 1].getY() - _pivots[_numberOfPivots].getY();
+                } else {
+                    diffX = _x - _pivots[_numberOfPivots].getX();
+                    diffY = _y - _pivots[_numberOfPivots].getY();
+                }
+                
+                _pivots[_numberOfPivots].setAttachAngle(atan2(diffY, diffX));
+                
+                _numberOfPivots++;
+                if (_numberOfPivots >= _pivotsCapacity) {
+                    _pivotsCapacity *= 2;
+                    Pivot *newPivots = new Pivot[_pivotsCapacity];
+                    for (int i = 0; i < _numberOfPivots; i++) {
+                        newPivots[i].setX(_pivots[i].getX());
+                        newPivots[i].setY(_pivots[i].getY());
+                    }
+                    delete[] _pivots;
+                    
+                    _pivots = newPivots;
+                }
             }
         }
     }

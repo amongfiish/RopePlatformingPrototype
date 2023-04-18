@@ -14,6 +14,13 @@ enum CORNERS {
 const int MIN_ROPE_LENGTH = 8;
 const int MAX_ROPE_LENGTH = 150;
 
+const double STRETCH_ACCELERATION = 0.02;
+const double SLACK_CHANGE_SPEED = 4;
+const double SEEK_SPEED = 8;
+const double RETRACT_SPEED = 12;
+
+const int GRAPPLE_RECT_HALF_WIDTH = 5;
+
 class Player;
 
 class CollisionReport {

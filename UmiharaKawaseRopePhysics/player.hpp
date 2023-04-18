@@ -13,6 +13,24 @@
 #include "grapple.hpp"
 #include "controls.hpp"
 
+const double JUMP_VELOCITY = 4;
+const double AIR_BLAST_VELOCITY_X = 2;
+const double AIR_BLAST_VELOCITY_Y = 4;
+
+const double GRAVITY = 0.2;
+const double SWING_SLOWDOWN = 0.005;  // air resistance
+const double GROUND_FRICTION = 0.1;
+
+const double AIR_ACCELERATION = 0.03;
+const double GROUND_ACCELERATION = 0.2;
+const double MAX_GROUND_VELOCITY = 2;
+const double MAX_AIR_VELOCITY = 2;
+
+const double MAX_VELOCITY_X = 8;
+const double MAX_VELOCITY_Y = 8;
+
+const int LEVEL_BOTTOM = 400;
+
 const int PLAYER_WIDTH = 32;
 const int PLAYER_HEIGHT = 32;
 
