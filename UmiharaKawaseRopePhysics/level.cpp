@@ -151,7 +151,7 @@ void Level::draw(SDL_Renderer *renderer) {
     }
 }
 
-void Level::save(string filename) {
+void Level::saveLevel(string filename) {
     ofstream file;
     file.open(filename);
     
@@ -170,7 +170,7 @@ void Level::save(string filename) {
     file.close();
 }
 
-void Level::load(string filename) {
+void Level::loadLevel(string filename) {
     ifstream file;
     file.open(filename, ios::in);
     

@@ -677,15 +677,6 @@ double Rope::getCurrentAngle() {
 int Rope::collideCorners(Level *level) {
     double diffX;
     double diffY;
-    
-    if (_numberOfPivots > 0) {
-        diffX = _pivots[_numberOfPivots - 1].getX() - (_player->getX() + _player->getWidth() / 2);
-        diffY = _pivots[_numberOfPivots - 1].getY() - (_player->getY() + _player->getHeight() / 2);
-//        printf("Pivot X: %d, Pivot Y: %d\n", _pivots[_numberOfPivots - 1].getX(), _pivots[_numberOfPivots - 1].getY());
-    } else {
-        diffX = _grappleX - (_player->getX() + _player->getWidth() / 2);
-        diffY = _grappleY - (_player->getY() + _player->getHeight() / 2);
-    }
 
     for (int i = 0; i < level->getNumberOfPlatforms(); i++) {
         double x1, y1, x2, y2;

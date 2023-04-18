@@ -19,7 +19,7 @@ int editorCursorX = MAP_WIDTH / 2;
 int editorCursorY = MAP_HEIGHT / 2;
 
 bool gameInit() {
-    level.load("level");
+    level.loadLevel("level");
     
     editorIndicator.initFont();
     editorMode.initFont();
@@ -46,7 +46,7 @@ void gameCleanUp() {
     player.destroyGrappleSeeker();
     player.destroyRope();
     
-    level.save("level");
+    level.saveLevel("level");
 }
 
 bool gameUpdate(KeyboardLayout *keys) {

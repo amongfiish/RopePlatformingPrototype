@@ -66,8 +66,8 @@ public:
     
     void draw(SDL_Renderer *renderer);
     
-    void save(string filename);
-    void load(string filename);
+    void saveLevel(string filename);
+    void loadLevel(string filename);
     
 private:
     int _startX;
