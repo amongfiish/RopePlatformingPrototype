@@ -72,6 +72,10 @@ public:
     void setDrawX(int x);
     void setDrawY(int y);
     
+    void setPivotPlatform(Platform *platform);
+    
+    Platform *getPivotPlatform();
+    
     void setAttachAngle(double attachAngle);
     double getAttachAngle();
     
@@ -80,6 +84,8 @@ private:
     int _y;
     int _drawX;
     int _drawY;
+    
+    Platform *_pivotPlatform;
     
     double _attachAngle;
 };
@@ -97,6 +103,8 @@ public:
     CollisionReport *collide(Platform *platform);
     bool seek(Level *level);
     
+    void removeFirstPivot();
+    
     int wrapCorners(Level *level);
     
     void draw(SDL_Renderer *renderer);
@@ -111,6 +119,9 @@ private:
     double _y;
     double _velocityX;
     double _velocityY;
+    
+    int _returnX;
+    int _returnY;
     
     Pivot *_pivots;
     int _numberOfPivots;

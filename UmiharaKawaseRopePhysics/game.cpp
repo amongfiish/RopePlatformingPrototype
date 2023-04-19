@@ -134,8 +134,7 @@ bool gameUpdate(KeyboardLayout *keys) {
             if (currentLevelEditorMode == PLATFORM) {
                 if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0 &&
                     !(editorCursorX * PLATFORM_WIDTH == level.getStartX() && editorCursorY * PLATFORM_HEIGHT == level.getStartY())) {
-                    level.addPlatform(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT);
-                    level.getPlatform(level.getNumberOfPlatforms() - 1)->setType(currentPlatformType);
+                    level.addPlatform(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPlatformType);
                 }
             } else if (currentLevelEditorMode == START_POINT) {
                 if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0) {

@@ -19,10 +19,12 @@ const double AIR_BLAST_VELOCITY_Y = 4;
 
 const double GRAVITY = 0.2;
 const double SWING_SLOWDOWN = 0.005;  // air resistance
-const double GROUND_FRICTION = 0.1;
+const double NORMAL_FRICTION = 0.1;
+const double ICE_FRICTION = 0.01;
 
 const double AIR_ACCELERATION = 0.03;
-const double GROUND_ACCELERATION = 0.2;
+const double NORMAL_ACCELERATION = 0.2;
+const double ICE_ACCELERATION = 0.05;
 const double MAX_GROUND_VELOCITY = 2;
 const double MAX_AIR_VELOCITY = 2;
 
@@ -70,6 +72,8 @@ public:
     void createRope(int gX, int gY);
     void destroyRope();
     
+    Platform *getGroundedPlatform();
+    
     Rope *getRope();
     
     bool update(KeyboardLayout *keys, Level *level);
@@ -89,6 +93,8 @@ private:
     bool _grounded;
     int _aim;
     int _facing;
+    
+    Platform *_groundedPlatform;
     
     bool _canAirBlast;
     

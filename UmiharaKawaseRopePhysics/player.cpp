@@ -75,6 +75,10 @@ void Player::destroyRope() {
     _rope = NULL;
 }
 
+Platform *Player::getGroundedPlatform() {
+    return _groundedPlatform;
+}
+
 Rope *Player::getRope() {
     return _rope;
 }
@@ -132,18 +136,25 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
         _aim = DOWNRIGHT;
     }
     
+    
+    
     // movement
     if (_aim < 0) {
         if (_grounded) {
+            double acceleration = NORMAL_ACCELERATION;
+            if (_groundedPlatform->getType() == ICE) {
+                acceleration = ICE_ACCELERATION;
+            }
+            
             if (keys->getRightState() != NONE) {
                 if (_velocityX < MAX_GROUND_VELOCITY) {
-                    _velocityX += GROUND_ACCELERATION;
+                    _velocityX += acceleration;
                 }
                 _facing = RIGHT;
             }
             if (keys->getLeftState() != NONE) {
                 if (_velocityX > -MAX_GROUND_VELOCITY) {
-                    _velocityX -= GROUND_ACCELERATION;
+                    _velocityX -= acceleration;
                 }
                 _facing = LEFT;
             }
@@ -214,16 +225,21 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
     if (_grounded) {
         _canAirBlast = true;
         
+        double friction = NORMAL_FRICTION;
+        if (_groundedPlatform->getType() == ICE) {
+            friction = ICE_FRICTION;
+        }
+        
         // ground friction
-        if ((_velocityX < 0 && _velocityX > -GROUND_FRICTION) ||
-            (_velocityX > 0 && _velocityX < GROUND_FRICTION)) {
+        if ((_velocityX < 0 && _velocityX > -friction) ||
+            (_velocityX > 0 && _velocityX < friction)) {
             _velocityX = 0;
         }
         
         if (_velocityX > 0) {
-            _velocityX -= GROUND_FRICTION;
+            _velocityX -= friction;
         } else if (_velocityX < 0) {
-            _velocityX += GROUND_FRICTION;
+            _velocityX += friction;
         }
     }
     
@@ -248,6 +264,7 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
                 _velocityY = 0;
                 _y = level->getPlatform(i)->getY() - _height;
                 _grounded = true;
+                _groundedPlatform = level->getPlatform(i);
                 break;
             case DOWN:
                 _velocityY = 0;

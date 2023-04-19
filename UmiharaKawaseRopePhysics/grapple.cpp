@@ -196,6 +196,20 @@ CollisionReport *GrappleSeeker::collide(Platform *p) {
 //    return false;
 //}
 
+void GrappleSeeker::removeFirstPivot() {
+    if (_numberOfPivots > 0) {
+        for (int i = 1; i < _numberOfPivots; i++) {
+            _pivots[i - 1].setX(_pivots[i].getX());
+            _pivots[i - 1].setY(_pivots[i].getY());
+            _pivots[i - 1].setDrawX(_pivots[i].getDrawX());
+            _pivots[i - 1].setDrawY(_pivots[i].getDrawY());
+            _pivots[i - 1].setAttachAngle(_pivots[i].getAttachAngle());
+            _pivots[i - 1].setPivotPlatform(_pivots[i - 1].getPivotPlatform());
+        }
+        _numberOfPivots--;
+    }
+}
+
 bool GrappleSeeker::seek(Level *level) {
     CollisionReportContainer container;
     
@@ -211,28 +225,31 @@ bool GrappleSeeker::seek(Level *level) {
     }
     
     if (container.getNumberOfReports() == 0) {
-        _x += _velocityX;
-        _y += _velocityY;
-        
         if (_extending) {
             _velocityX = SEEK_SPEED * cos(_angle);
             _velocityY = SEEK_SPEED * sin(_angle);
         } else {
-            double diffX;
-            double diffY;
+            if (_numberOfPivots > 0) {
+                _returnX = _pivots[0].getX();
+                _returnY = _pivots[0].getY();
+            } else {
+                _returnX = _player->getX() + _player->getWidth() / 2;
+                _returnY = _player->getY() + _player->getHeight() / 2;
+            }
+            
+            double diffX = _returnX - _x;
+            double diffY = _returnY - _y;
             
             if (_numberOfPivots != 0) {
-                diffX = _pivots[_numberOfPivots - 1].getX() - _x;
-                diffY = _pivots[_numberOfPivots - 1].getY() - _y;
-                
                 double pivotDistance = sqrt(pow(diffX, 2) + pow(diffY, 2));
                 if (pivotDistance <= sqrt(pow(_velocityX, 2) + pow(_velocityY, 2))) {
-                    _player->createRope(_pivots[_numberOfPivots - 1].getX(), _pivots[_numberOfPivots - 1].getY());
-                    return true;
+                    if (_pivots[_numberOfPivots - 1].getPivotPlatform()->getType() != METAL) {
+                        _player->createRope(_pivots[_numberOfPivots - 1].getX(), _pivots[_numberOfPivots - 1].getY());
+                        return true;
+                    } else {
+                        removeFirstPivot();
+                    }
                 }
-            } else {
-                diffX = _player->getX() + _player->getWidth() / 2 - _x;
-                diffY = _player->getY() + _player->getHeight() / 2 - _y;
             }
             
             double playerAngle = atan2(diffY, diffX);
@@ -240,6 +257,9 @@ bool GrappleSeeker::seek(Level *level) {
             _velocityX = RETRACT_SPEED * cos(playerAngle);
             _velocityY = RETRACT_SPEED * sin(playerAngle);
         }
+        
+        _x += _velocityX;
+        _y += _velocityY;
         
         if (_extending && getCurrentLength() > MAX_ROPE_LENGTH) {
             _extending = false;
@@ -291,6 +311,13 @@ bool GrappleSeeker::seek(Level *level) {
 //    } else if (closestCollision->getIntersectionY() == closestCollision->getPlatform()->getY() + closestCollision->getPlatform()->getHeight()) {
 //        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() + 1);
 //    }
+    
+    if (closestCollision->getPlatform()->getType() == METAL && _extending == true) {
+        _extending = false;
+        _x -= _velocityX;
+        _y -= _velocityY;
+        return false;
+    }
     
     _player->createRope(x, y);
     
@@ -427,7 +454,7 @@ int GrappleSeeker::wrapCorners(Level *level) {
                 _pivots[_numberOfPivots].setDrawX(level->getPlatform(i)->getX() - 1);
                 _pivots[_numberOfPivots].setDrawY(level->getPlatform(i)->getY() - 1);
                 valuesSet = true;
-            } else if ((right && !bottom && movingUp && playerLeft && !playerTop && platformBottom) || (bottom && !right && movingLeft && playerTop && !playerLeft && platformLeft)) {  // right/~bottom and bottom/~right
+            } else if ((right && !bottom && movingUp && playerLeft && !playerTop && platformBottom) || (bottom && !right && movingLeft && playerTop && !playerLeft && platformRight)) {  // right/~bottom and bottom/~right
                 // pivot @ bottom right
                 _pivots[_numberOfPivots].setX(level->getPlatform(i)->getX() + level->getPlatform(i)->getWidth() + 1);
                 _pivots[_numberOfPivots].setY(level->getPlatform(i)->getY() + level->getPlatform(i)->getHeight() + 1);
@@ -514,6 +541,8 @@ int GrappleSeeker::wrapCorners(Level *level) {
                 
                 _pivots[_numberOfPivots].setAttachAngle(atan2(diffY, diffX));
                 
+                _pivots[_numberOfPivots].setPivotPlatform(level->getPlatform(i));
+                
                 _numberOfPivots++;
                 if (_numberOfPivots >= _pivotsCapacity) {
                     _pivotsCapacity *= 2;
@@ -582,6 +611,14 @@ void Pivot::setDrawX(int x) {
 
 void Pivot::setDrawY(int y) {
     _drawY = y;
+}
+
+void Pivot::setPivotPlatform(Platform *platform) {
+    _pivotPlatform = platform;
+}
+
+Platform *Pivot::getPivotPlatform() {
+    return _pivotPlatform;
 }
 
 void Pivot::setAttachAngle(double attachAngle) {

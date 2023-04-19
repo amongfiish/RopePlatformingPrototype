@@ -70,7 +70,7 @@ public:
     
     int platformExists(int x, int y);
     
-    void addPlatform(int x, int y, int w, int h);
+    void addPlatform(int x, int y, int w, int h, int type);
     void removePlatform(int i);
     Platform *getPlatform(int i);
     

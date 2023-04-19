@@ -89,14 +89,6 @@ Level::~Level() {
     delete[] _platforms;
 }
 
-void save() {
-    
-}
-
-void load() {
-    
-}
-
 int Level::platformExists(int x, int y) {
     for (int i = 0; i < _numberOfPlatforms; i++) {
         if (_platforms[i].getX() == x && _platforms[i].getY() == y) {
@@ -120,11 +112,12 @@ void Level::setStartPos(int x, int y) {
     _startY = y;
 }
 
-void Level::addPlatform(int x, int y, int w, int h) {
+void Level::addPlatform(int x, int y, int w, int h, int type) {
     _platforms[_numberOfPlatforms].setX(x);
     _platforms[_numberOfPlatforms].setY(y);
     _platforms[_numberOfPlatforms].setWidth(w);
     _platforms[_numberOfPlatforms].setHeight(h);
+    _platforms[_numberOfPlatforms].setType(type);
     
     _numberOfPlatforms++;
     
@@ -137,6 +130,7 @@ void Level::addPlatform(int x, int y, int w, int h) {
             newPlatforms[i].setY(_platforms[i].getY());
             newPlatforms[i].setWidth(_platforms[i].getWidth());
             newPlatforms[i].setHeight(_platforms[i].getHeight());
+            newPlatforms[i].setType(_platforms[i].getType());
         }
         delete[] _platforms;
         
@@ -191,18 +185,21 @@ void Level::saveLevel(string filename) {
 
 void Level::loadLevel(string filename) {
     ifstream file;
-    file.open(filename, ios::in);
+    file.open(filename);
     
-    char currentPos;
-    for (int y = 0; y < MAP_HEIGHT; y++) {
-        for (int x = 0; x < MAP_WIDTH; x++) {
-            file.get(currentPos);
-            
-            if (currentPos == '1') {
-                setStartPos(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
-            } else if (currentPos > '1') {
-                addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT);
-                _platforms[_numberOfPlatforms - 1].setType(currentPos - 50);
+    if (!file.fail()) {
+        char currentPos;
+        for (int y = 0; y < MAP_HEIGHT; y++) {
+            for (int x = 0; x < MAP_WIDTH; x++) {
+                file.get(currentPos);
+                
+                printf("%d\n", currentPos);
+                
+                if (currentPos == '1') {
+                    setStartPos(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
+                } else if (currentPos > '1') {
+                    addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPos - 50);
+                }
             }
         }
     }
