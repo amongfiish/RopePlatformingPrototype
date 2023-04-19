@@ -132,6 +132,12 @@ bool gameUpdate(KeyboardLayout *keys) {
         
         if (keys->getConfirmState()) {
             if (currentLevelEditorMode == PLATFORM) {
+                int platformExists = level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
+                
+                if (platformExists >= 0 && level.getPlatform(platformExists)->getType() != currentPlatformType) {
+                    level.removePlatform(platformExists);
+                }
+                
                 if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0 &&
                     !(editorCursorX * PLATFORM_WIDTH == level.getStartX() && editorCursorY * PLATFORM_HEIGHT == level.getStartY())) {
                     level.addPlatform(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPlatformType);

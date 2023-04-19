@@ -145,6 +145,13 @@ void Level::removePlatform(int i) {
     _numberOfPlatforms--;
 }
 
+void Level::resetLevel() {
+    int totalPlatforms = _numberOfPlatforms;
+    for (int i = 0; i < totalPlatforms; i++) {
+        removePlatform(0);
+    }
+}
+
 Platform *Level::getPlatform(int i) {
     if (i >= 0 && i < _numberOfPlatforms) {
         return _platforms + i;
@@ -192,8 +199,6 @@ void Level::loadLevel(string filename) {
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
                 file.get(currentPos);
-                
-                printf("%d\n", currentPos);
                 
                 if (currentPos == '1') {
                     setStartPos(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);

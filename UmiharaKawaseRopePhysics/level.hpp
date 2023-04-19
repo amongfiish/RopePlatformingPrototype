@@ -72,6 +72,7 @@ public:
     
     void addPlatform(int x, int y, int w, int h, int type);
     void removePlatform(int i);
+    void resetLevel();
     Platform *getPlatform(int i);
     
     int getNumberOfPlatforms();
