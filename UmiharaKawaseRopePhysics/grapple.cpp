@@ -312,7 +312,7 @@ bool GrappleSeeker::seek(Level *level) {
 //        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() + 1);
 //    }
     
-    if (closestCollision->getPlatform()->getType() == METAL && _extending == true) {
+    if (closestCollision->getPlatform()->getType() == METAL) {
         _extending = false;
         _x -= _velocityX;
         _y -= _velocityY;
