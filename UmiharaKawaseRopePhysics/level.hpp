@@ -12,6 +12,12 @@
 #include <string>
 using namespace std;
 
+enum PlatformTypes {
+    NORMAL,
+    METAL,
+    ICE
+};
+
 const int PLATFORM_WIDTH = 32;
 const int PLATFORM_HEIGHT = 32;
 const int MAP_WIDTH = 25;
@@ -20,7 +26,7 @@ const int MAP_HEIGHT = 15;
 class Platform {
 public:
     Platform();
-    Platform(int x, int y, int w, int h);
+    Platform(int x, int y, int w, int h, int type);
     
     int getX();
     int getY();
@@ -34,6 +40,9 @@ public:
     
     void setPos(int x, int y);
     
+    void setType(int type);
+    int getType();
+    
     void draw(SDL_Renderer *renderer);
     
 private:
@@ -41,6 +50,8 @@ private:
     int _y;
     int _width;
     int _height;
+    
+    int _type;
 };
 
 class Level {

@@ -8,13 +8,17 @@ Platform::Platform() {
     _y = 0;
     _width = 0;
     _width = 0;
+    
+    _type = NORMAL;
 }
 
-Platform::Platform(int x, int y, int w, int h) {
+Platform::Platform(int x, int y, int w, int h, int type) {
     _x = x;
     _y = y;
     _width = w;
     _height = h;
+    
+    _type = type;
 }
 
 int Platform::getX() {
@@ -54,9 +58,23 @@ void Platform::setPos(int x, int y) {
     _y = y;
 }
 
+void Platform::setType(int type) {
+    _type = type;
+}
+
+int Platform::getType() {
+    return _type;
+}
+
 void Platform::draw(SDL_Renderer *renderer) {
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    
+    if (_type == NORMAL) {
+        SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    } else if (_type == METAL) {
+        SDL_SetRenderDrawColor(renderer, 0xAA, 0xAA, 0xAA, 0xFF);
+    } else if (_type == ICE) {
+        SDL_SetRenderDrawColor(renderer, 0xC0, 0xEE, 0xFF, 0xFF);
+    }
+        
     SDL_Rect rect = { _x, _y, _width, _height };
     SDL_RenderFillRect(renderer, &rect);
 }
@@ -157,10 +175,11 @@ void Level::saveLevel(string filename) {
     
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
-            if (platformExists(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT) >= 0) {
-                file.put('1');
+            int platform = platformExists(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
+            if (platform >= 0) {
+                file.put(_platforms[platform].getType() + 50);
             } else if (_startX == x * PLATFORM_WIDTH && _startY == y * PLATFORM_HEIGHT) {
-                file.put('2');
+                file.put('1');
             } else {
                 file.put('0');
             }
@@ -180,9 +199,10 @@ void Level::loadLevel(string filename) {
             file.get(currentPos);
             
             if (currentPos == '1') {
-                addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT);
-            } else if (currentPos == '2') {
                 setStartPos(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
+            } else if (currentPos > '1') {
+                addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT);
+                _platforms[_numberOfPlatforms - 1].setType(currentPos - 50);
             }
         }
     }
