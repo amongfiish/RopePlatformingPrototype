@@ -8,12 +8,14 @@ const string VERSION = "indev 2-3";
 
 int currentGameState = GAME;
 int currentLevelEditorMode = PLATFORM;
+int currentPlatformType = NORMAL;
 
 Player player;
 Level level;
 
 TextBox editorIndicator;
 TextBox editorMode;
+TextBox platformType;
 
 int editorCursorX = MAP_WIDTH / 2;
 int editorCursorY = MAP_HEIGHT / 2;
@@ -21,8 +23,10 @@ int editorCursorY = MAP_HEIGHT / 2;
 bool gameInit() {
     level.loadLevel("level");
     
+    // text
     editorIndicator.initFont();
     editorMode.initFont();
+    platformType.initFont();
     
     editorIndicator.setText("EDITOR");
     editorIndicator.setColor(0x00, 0xFF, 0x00, 0xFF);
@@ -37,6 +41,13 @@ bool gameInit() {
     editorMode.setWidth(128);
     editorMode.setHeight(32);
     
+    platformType.setColor(0x00, 0xFF, 0x00, 0xFF);
+    platformType.setX(10);
+    platformType.setY(79);
+    platformType.setWidth(160);
+    platformType.setHeight(32);
+    
+    // player
     player.setPos(level.getStartX(), level.getStartY());
     
     return true;
@@ -74,6 +85,25 @@ bool gameUpdate(KeyboardLayout *keys) {
             currentLevelEditorMode--;
         }
         
+        if (currentLevelEditorMode >= NUMBER_OF_EDITOR_MODES) {
+            currentLevelEditorMode = 0;
+        } else if (currentLevelEditorMode < 0) {
+            currentLevelEditorMode = NUMBER_OF_EDITOR_MODES - 1;
+        }
+        
+        if (keys->getNextPlatformTypeState() == PRESSED) {
+            currentPlatformType++;
+        }
+        if (keys->getPreviousPlatformTypeState() == PRESSED) {
+            currentPlatformType--;
+        }
+        
+        if (currentPlatformType >= NUMBER_OF_PLATFORM_TYPES) {
+            currentPlatformType = 0;
+        } else if (currentPlatformType < 0) {
+            currentPlatformType = NUMBER_OF_PLATFORM_TYPES - 1;
+        }
+        
         if (keys->getUpState() == PRESSED) {
             editorCursorY -= 1;
         }
@@ -105,6 +135,7 @@ bool gameUpdate(KeyboardLayout *keys) {
                 if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0 &&
                     !(editorCursorX * PLATFORM_WIDTH == level.getStartX() && editorCursorY * PLATFORM_HEIGHT == level.getStartY())) {
                     level.addPlatform(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT);
+                    level.getPlatform(level.getNumberOfPlatforms() - 1)->setType(currentPlatformType);
                 }
             } else if (currentLevelEditorMode == START_POINT) {
                 if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0) {
@@ -122,13 +153,8 @@ bool gameUpdate(KeyboardLayout *keys) {
             }
         }
         
-        if (currentLevelEditorMode >= NUMBER_OF_EDITOR_MODES) {
-            currentLevelEditorMode = 0;
-        } else if (currentLevelEditorMode < 0) {
-            currentLevelEditorMode = NUMBER_OF_EDITOR_MODES - 1;
-        }
-        
         editorMode.setText("EDITING: " + EDITOR_MODE_STRINGS[currentLevelEditorMode]);
+        platformType.setText("PLATFORM TYPE: " + PLATFORM_TYPE_STRINGS[currentPlatformType]);
     }
     
     return true;
@@ -150,5 +176,6 @@ void gameDraw(SDL_Renderer* renderer) {
         
         editorIndicator.draw(renderer);
         editorMode.draw(renderer);
+        platformType.draw(renderer);
     }
 }

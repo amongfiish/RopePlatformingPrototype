@@ -28,6 +28,8 @@ void KeyboardLayout::update(const Uint8 *keys) {
     
     updateKey(keys, _nextEditorMode, &_nextEditorModeState);
     updateKey(keys, _previousEditorMode, &_previousEditorModeState);
+    updateKey(keys, _nextPlatformType, &_nextPlatformTypeState);
+    updateKey(keys, _previousPlatformType, &_previousPlatformTypeState);
     updateKey(keys, _playToggle, &_playToggleState);
 }
 
@@ -120,6 +122,14 @@ int KeyboardLayout::getPreviousEditorModeState() {
     return _previousEditorModeState;
 }
 
+int KeyboardLayout::getNextPlatformTypeState() {
+    return _nextPlatformTypeState;
+}
+
+int KeyboardLayout::getPreviousPlatformTypeState() {
+    return _previousPlatformTypeState;
+}
+
 int KeyboardLayout::getPlayToggleState() {
     return _playToggleState;
 }
@@ -130,6 +140,14 @@ void KeyboardLayout::setNextEditorMode(int nextEditorMode) {
 
 void KeyboardLayout::setPreviousEditorMode(int previousEditorMode) {
     _previousEditorMode = previousEditorMode;
+}
+
+void KeyboardLayout::setNextPlatformType(int nextPlatformType) {
+    _nextPlatformType = nextPlatformType;
+}
+
+void KeyboardLayout::setPreviousPlatformType(int previousPlatformType) {
+    _previousPlatformType = previousPlatformType;
 }
 
 void KeyboardLayout::setPlayToggle(int playToggle) {

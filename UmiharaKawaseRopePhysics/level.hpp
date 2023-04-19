@@ -17,6 +17,8 @@ enum PlatformTypes {
     METAL,
     ICE
 };
+constexpr int NUMBER_OF_PLATFORM_TYPES = 3;
+const string PLATFORM_TYPE_STRINGS[NUMBER_OF_PLATFORM_TYPES] = { "NORMAL", "METAL", "ICE" };
 
 const int PLATFORM_WIDTH = 32;
 const int PLATFORM_HEIGHT = 32;

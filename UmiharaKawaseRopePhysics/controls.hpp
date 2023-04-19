@@ -52,10 +52,14 @@ public:
     
     int getNextEditorModeState();
     int getPreviousEditorModeState();
+    int getNextPlatformTypeState();
+    int getPreviousPlatformTypeState();
     int getPlayToggleState();
     
     void setNextEditorMode(int nextEditorMode);
     void setPreviousEditorMode(int previousEditorMode);
+    void setNextPlatformType(int nextPlatformType);
+    void setPreviousPlatformType(int previousPlatformType);
     void setPlayToggle(int playToggle);
     
 private:
@@ -85,9 +89,13 @@ private:
     
     int _nextEditorMode;
     int _previousEditorMode;
+    int _nextPlatformType;
+    int _previousPlatformType;
     int _playToggle;
     int _nextEditorModeState;
     int _previousEditorModeState;
+    int _nextPlatformTypeState;
+    int _previousPlatformTypeState;
     int _playToggleState;
 };
 
