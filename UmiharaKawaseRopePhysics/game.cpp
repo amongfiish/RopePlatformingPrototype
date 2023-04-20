@@ -155,6 +155,7 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         } else if (pauseSelection == 1) {
             level.saveLevel(levelFilename);
             currentGameState = MENU;
+            level.resetLevel();
         }
     } else if (currentGameState == LEVEL_EDITOR) {
         updateLevelEditor(keys);
@@ -175,6 +176,8 @@ void gameDraw(SDL_Renderer* renderer) {
         pauseIndicator.draw(renderer);
         pauseOptions.draw(renderer);
     } else if (currentGameState == LEVEL_EDITOR) {
+        level.draw(renderer);
+        
         SDL_SetRenderDrawColor(renderer, (currentLevelEditorMode == PLATFORM) ? 0x00 : 0xFF, 0x00, (currentLevelEditorMode == PLATFORM) ? 0xFF : 0x00, 0xFF);
         SDL_Rect cursorRect = { editorCursorX * PLATFORM_WIDTH - 1, editorCursorY * PLATFORM_WIDTH - 1, PLATFORM_WIDTH + 2, PLATFORM_HEIGHT + 2 };
         SDL_RenderDrawRect(renderer, &cursorRect);
@@ -182,8 +185,7 @@ void gameDraw(SDL_Renderer* renderer) {
         SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
         SDL_Rect startPosRect = { level.getStartX(), level.getStartY(), PLATFORM_WIDTH, PLATFORM_HEIGHT };
         SDL_RenderFillRect(renderer, &startPosRect);
-        
-        level.draw(renderer);
+
         editorIndicator.draw(renderer);
         editorMode.draw(renderer);
         platformType.draw(renderer);
