@@ -180,6 +180,7 @@ void gameDraw(SDL_Renderer* renderer) {
         SDL_Rect startPosRect = { level.getStartX(), level.getStartY(), PLATFORM_WIDTH, PLATFORM_HEIGHT };
         SDL_RenderFillRect(renderer, &startPosRect);
         
+        level.draw(renderer);
         editorIndicator.draw(renderer);
         editorMode.draw(renderer);
         platformType.draw(renderer);
