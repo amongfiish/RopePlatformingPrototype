@@ -329,7 +329,7 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         }
         
         if (keys->getConfirmState() == PRESSED) {
-            levelFilename = availableLevels[levelSelector.getSelection()];
+            levelFilename = availableLevels[levelSelector.getSelection()].string();
             level.loadLevel(levelFilename);
             
             currentGameState = GAME;
