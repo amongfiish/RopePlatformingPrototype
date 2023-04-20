@@ -89,6 +89,8 @@ Level::Level() {
     _startY = 0;
     _endX = 64;
     _endY = 0;
+    
+    _fastestTime = -1;
 }
 
 Level::~Level() {
@@ -195,6 +197,14 @@ int Level::getNumberOfPlatforms() {
     return _numberOfPlatforms;
 }
 
+double Level::getFastestTime() {
+    return _fastestTime;
+}
+
+void Level::setFastestTime(double fastestTime) {
+    _fastestTime = fastestTime;
+}
+
 void Level::draw(SDL_Renderer *renderer) {
     for (int i = 0; i < _numberOfPlatforms; i++) {
         _platforms[i].draw(renderer);
@@ -207,8 +217,7 @@ void Level::draw(SDL_Renderer *renderer) {
 }
 
 void Level::saveLevel(string filename) {
-    filesystem::path filePath(filename);
-    
+    filesystem::path filePath("levels/" + filename);
     filePath.replace_extension("lvl");
     
     ofstream file;
@@ -230,11 +239,21 @@ void Level::saveLevel(string filename) {
     }
     
     file.close();
+    
+    filePath.replace_extension("hs");
+    file.open(filePath.string());
+    
+    file << to_string(getFastestTime()).c_str();
+    
+    file.close();
 }
 
 void Level::loadLevel(string filename) {
+    filesystem::path filePath("levels/" + filename);
+    filePath.replace_extension("lvl");
+    
     ifstream file;
-    file.open(filename);
+    file.open(filePath.string());
     
     if (!file.fail()) {
         char currentPos;
@@ -251,6 +270,17 @@ void Level::loadLevel(string filename) {
                 }
             }
         }
+    }
+    
+    file.close();
+    
+    filePath.replace_extension("hs");
+    file.open(filePath.string());
+    
+    string fastestTimeString;
+    if (!file.fail()) {
+        file >> fastestTimeString;
+        _fastestTime = stod(fastestTimeString);
     }
     
     file.close();

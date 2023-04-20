@@ -83,6 +83,9 @@ public:
     
     int getNumberOfPlatforms();
     
+    double getFastestTime();
+    void setFastestTime(double fastestTime);
+    
     void draw(SDL_Renderer *renderer);
     
     void saveLevel(string filename);
@@ -98,6 +101,8 @@ private:
     Platform *_platforms;
     int _numberOfPlatforms;
     int _platformsCapacity;
+    
+    double _fastestTime;
 };
 
 #endif

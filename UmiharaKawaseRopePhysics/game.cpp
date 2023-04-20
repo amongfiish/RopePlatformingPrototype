@@ -7,7 +7,7 @@
 #include "text.hpp"
 using namespace std;
 
-const string VERSION = "indev 4-5";
+const string VERSION = "indev 6";
 
 int currentGameState = MENU;
 int currentLevelEditorMode = PLATFORM;
@@ -32,6 +32,7 @@ TextBox versionIndicator;
 // level end text
 TextBox winIndicator;
 TextBox timeIndicator;
+TextBox fastestIndicator;
 TextSelection endOptions;
 
 // pause text
@@ -61,8 +62,6 @@ bool gameInit() {
     if (!filesystem::exists(levels)) {
         filesystem::create_directory(levels);
     }
-    
-    filesystem::current_path(levels);
     
     // menu text
     title.initFont();
@@ -127,7 +126,13 @@ bool gameInit() {
     timeIndicator.setHeight(32);
     timeIndicator.detectWidth();
     
-    endOptions.setPos(250, 210);
+    fastestIndicator.setColor(0xFF, 0xFF, 0x00, 0xFF);
+    fastestIndicator.setX(250);
+    fastestIndicator.setY(210);
+    fastestIndicator.setHeight(32);
+    fastestIndicator.detectWidth();
+    
+    endOptions.setPos(250, 250);
     endOptions.setActive(true);
     endOptions.setScrollable(false);
     endOptions.addOption("RETRY", 0xFF, 0xFF, 0xFF, 0xFF);
@@ -200,11 +205,27 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             currentGameState = LEVEL_END;
             secondsTaken = (SDL_GetTicks64() - startTicks) / 1000.0;
             
+            bool newFastest = false;
+            if (secondsTaken < level.getFastestTime() || level.getFastestTime() < 0) {
+                level.setFastestTime(secondsTaken);
+                level.saveLevel(levelFilename);
+                newFastest = true;
+            }
+            
             char s[50];
             snprintf(s, 50, "Time: %f secs", secondsTaken);
             
             timeIndicator.setText(s);
             timeIndicator.detectWidth();
+            
+            if (!newFastest) {
+                snprintf(s, 50, "Fastest: %f secs", level.getFastestTime());
+            } else {
+                snprintf(s, 50, "Fastest: %f secs *NEW*", level.getFastestTime());
+            }
+                
+            fastestIndicator.setText(s);
+            fastestIndicator.detectWidth();
         }
         
         if (!player.update(keys, &level)) {
@@ -223,6 +244,8 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             level.saveLevel(levelFilename);
             currentGameState = MENU;
             level.resetLevel();
+            
+            resetLevel();
         }
     } else if (currentGameState == LEVEL_EDITOR) {
         updateLevelEditor(keys);
@@ -307,6 +330,7 @@ void gameDraw(SDL_Renderer* renderer) {
     } else if (currentGameState == LEVEL_END) {
         winIndicator.draw(renderer);
         timeIndicator.draw(renderer);
+        fastestIndicator.draw(renderer);
         endOptions.draw(renderer);
     }
 }
@@ -425,7 +449,10 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
                 
                 player.setPos(level.getStartX(), level.getStartY());
                 
+                level.setStartPos(0, 0);
+                level.setEndPos(64, 64);
                 level.resetLevel();
+                
                 level.saveLevel(levelFilename);
                 return true;
             }
@@ -459,6 +486,8 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             player.setPos(level.getStartX(), level.getStartY());
             
             currentGameState = GAME;
+            
+            resetLevel();
         }
         
         levelSelector.update(keys);
@@ -481,9 +510,9 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
 }
 
 void updateAvailableLevels() {
-    for (auto const& dir_entry : std::filesystem::directory_iterator(filesystem::current_path())) {
+    for (auto const& dir_entry : std::filesystem::directory_iterator("levels")) {
         if (dir_entry.path().extension() == ".lvl") {
-            availableLevels.push_back(dir_entry.path().filename());
+            availableLevels.push_back(dir_entry.path().filename().replace_extension(""));
             levelSelector.addOption((availableLevels.end()-1)->string(), 0xFF, 0xFF, 0xFF, 0xFF);
         }
     }
