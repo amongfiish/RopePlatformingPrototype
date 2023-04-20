@@ -127,7 +127,7 @@ bool gameInit() {
     endOptions.addOption("MAIN MENU", 0xFF, 0xFF, 0xFF, 0xFF);
     
     // pause text
-    pauseIndicator.setText("PAUSE");
+    pauseIndicator.setText("IN-GAME MENU");
     pauseIndicator.setX(150);
     pauseIndicator.setY(100);
     pauseIndicator.setHeight(52);
