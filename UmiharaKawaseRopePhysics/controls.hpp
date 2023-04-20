@@ -50,6 +50,10 @@ public:
     void setGrapple(int grapple);
     void setAirBlast(int airBlast);
     
+    int getResetState();
+    
+    void setReset(int reset);
+    
     int getNextEditorModeState();
     int getPreviousEditorModeState();
     int getNextPlatformTypeState();
@@ -86,6 +90,9 @@ private:
     int _jumpState;
     int _grappleState;
     int _airBlastState;
+    
+    int _reset;
+    int _resetState;
     
     int _nextEditorMode;
     int _previousEditorMode;

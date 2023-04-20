@@ -113,6 +113,31 @@ void Level::setStartPos(int x, int y) {
     _startY = y;
 }
 
+bool Level::collideEndX(int x, int y, int w, int h) {
+    if (x + w >= _endX &&
+        x < _endX + PLATFORM_WIDTH &&
+        y + h >= _endY &&
+        y < _endY + PLATFORM_HEIGHT) {
+        
+        return true;
+    }
+    
+    return false;
+}
+
+int Level::getEndX() {
+    return _endX;
+}
+
+int Level::getEndY() {
+    return _endY;
+}
+
+void Level::setEndPos(int x, int y) {
+    _endX = x;
+    _endY = y;
+}
+
 void Level::addPlatform(int x, int y, int w, int h, int type) {
     _platforms[_numberOfPlatforms].setX(x);
     _platforms[_numberOfPlatforms].setY(y);
@@ -169,6 +194,11 @@ void Level::draw(SDL_Renderer *renderer) {
     for (int i = 0; i < _numberOfPlatforms; i++) {
         _platforms[i].draw(renderer);
     }
+    
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
+    SDL_Rect endPosRect = { _endX, _endY, PLATFORM_WIDTH, PLATFORM_HEIGHT };
+    
+    SDL_RenderFillRect(renderer, &endPosRect);
 }
 
 void Level::saveLevel(string filename) {
@@ -177,13 +207,15 @@ void Level::saveLevel(string filename) {
     }
     
     ofstream file;
-    file.open("levels/" + filename + ".lvl");
+    file.open(filename);
     
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
             int platform = platformExists(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
             if (platform >= 0) {
-                file.put(_platforms[platform].getType() + 50);
+                file.put(_platforms[platform].getType() + 51);
+            } else if (_endX == x * PLATFORM_WIDTH && _endY == y * PLATFORM_HEIGHT) {
+                file.put('2');
             } else if (_startX == x * PLATFORM_WIDTH && _startY == y * PLATFORM_HEIGHT) {
                 file.put('1');
             } else {
@@ -211,8 +243,10 @@ void Level::loadLevel(string filename) {
                 
                 if (currentPos == '1') {
                     setStartPos(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
-                } else if (currentPos > '1') {
-                    addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPos - 50);
+                } else if (currentPos == '2') {
+                    setEndPos(x * PLATFORM_WIDTH, y * PLATFORM_WIDTH);
+                } else if (currentPos > '2') {
+                    addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPos - 51);
                 }
             }
         }

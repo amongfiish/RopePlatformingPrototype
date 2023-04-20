@@ -26,6 +26,8 @@ void KeyboardLayout::update(const Uint8 *keys) {
     updateKey(keys, _grapple, &_grappleState);
     updateKey(keys, _airBlast, &_airBlastState);
     
+    updateKey(keys, _reset, &_resetState);
+    
     updateKey(keys, _nextEditorMode, &_nextEditorModeState);
     updateKey(keys, _previousEditorMode, &_previousEditorModeState);
     updateKey(keys, _nextPlatformType, &_nextPlatformTypeState);
@@ -113,6 +115,15 @@ void KeyboardLayout::setGrapple(int grapple) {
 void KeyboardLayout::setAirBlast(int airBlast) {
     _airBlast = airBlast;
 }
+
+int KeyboardLayout::getResetState() {
+    return _resetState;
+}
+
+void KeyboardLayout::setReset(int reset) {
+    _reset = reset;
+}
+
 
 int KeyboardLayout::getNextEditorModeState() {
     return _nextEditorModeState;

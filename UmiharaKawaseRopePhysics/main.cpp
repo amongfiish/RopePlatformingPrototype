@@ -144,6 +144,8 @@ bool init() {
     defaultLayout.setGrapple(SDL_SCANCODE_X);
     defaultLayout.setAirBlast(-1);
     
+    defaultLayout.setReset(SDL_SCANCODE_R);
+    
     defaultLayout.setNextEditorMode(SDL_SCANCODE_E);
     defaultLayout.setPreviousEditorMode(SDL_SCANCODE_Q);
     defaultLayout.setNextPlatformType(SDL_SCANCODE_A);

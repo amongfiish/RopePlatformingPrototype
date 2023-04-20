@@ -68,6 +68,12 @@ public:
     int getStartY();
     void setStartPos(int x, int y);
     
+    bool collideEndX(int x, int y, int w, int h);
+    
+    int getEndX();
+    int getEndY();
+    void setEndPos(int x, int y);
+    
     int platformExists(int x, int y);
     
     void addPlatform(int x, int y, int w, int h, int type);
@@ -85,6 +91,9 @@ public:
 private:
     int _startX;
     int _startY;
+    
+    int _endX;
+    int _endY;
     
     Platform *_platforms;
     int _numberOfPlatforms;

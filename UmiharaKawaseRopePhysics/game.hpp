@@ -18,19 +18,22 @@ enum GameMode {
     LEVEL_SELECTOR,
     PAUSE,
     GAME,
-    LEVEL_EDITOR
+    LEVEL_EDITOR,
+    LEVEL_END
 };
 
 enum LevelEditorMode {
     PLATFORM,
-    START_POINT
+    START_POINT,
+    END_POINT
 };
 
-constexpr int NUMBER_OF_EDITOR_MODES = 2;
+constexpr int NUMBER_OF_EDITOR_MODES = 3;
 
-const string EDITOR_MODE_STRINGS[2] = {
+const string EDITOR_MODE_STRINGS[3] = {
     "PLATFORM",
-    "START POINT"
+    "START POINT",
+    "END POINT"
 };
 
 

@@ -7,7 +7,7 @@
 #include "text.hpp"
 using namespace std;
 
-const string VERSION = "indev 4";
+const string VERSION = "indev 4-5";
 
 int currentGameState = MENU;
 int currentLevelEditorMode = PLATFORM;
@@ -27,6 +27,12 @@ TextBox levelNameIndicator;
 TextInput newLevelName;
 TextSelection levelSelector;
 vector<filesystem::path> availableLevels;
+TextBox versionIndicator;
+
+// level end text
+TextBox winIndicator;
+TextBox timeIndicator;
+TextSelection endOptions;
 
 // pause text
 TextBox pauseIndicator;
@@ -37,20 +43,27 @@ TextBox editorIndicator;
 TextBox editorMode;
 TextBox platformType;
 
+Uint64 startTicks;
+double secondsTaken;
+
 int editorCursorX = MAP_WIDTH / 2;
 int editorCursorY = MAP_HEIGHT / 2;
 
 void updateLevelEditor(KeyboardLayout *keys);
 bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLetters);
+void resetLevel();
 
 void updateAvailableLevels();
 
 bool gameInit() {
-    // text
+    // menu text
     title.initFont();
     editorIndicator.initFont();
+    versionIndicator.initFont();
     editorMode.initFont();
     platformType.initFont();
+    winIndicator.initFont();
+    timeIndicator.initFont();
     
     title.setText("Grappling Hook Prototype");
     title.setColor(0xFF, 0xFF, 0xFF, 0xFF);
@@ -62,9 +75,17 @@ bool gameInit() {
     titleOptions.setPos(32, 100);
     titleOptions.setActive(true);
     titleOptions.setScrollable(false);
+    titleOptions.addOption("CAMPAIGN", 0xFF, 0xFF, 0xFF, 0xFF);
     titleOptions.addOption("NEW LEVEL", 0xFF, 0xFF, 0xFF, 0xFF);
     titleOptions.addOption("LOAD LEVEL", 0xFF, 0xFF, 0xFF, 0xFF);
     titleOptions.addOption("QUIT", 0xFF, 0xFF, 0xFF, 0xFF);
+    
+    versionIndicator.setText(VERSION);
+    versionIndicator.setColor(0xFF, 0xFF, 0xFF, 0xFF);
+    versionIndicator.setX(675);
+    versionIndicator.setY(450);
+    versionIndicator.setHeight(24);
+    versionIndicator.detectWidth();
     
     levelNameIndicator.setText("Level name:");
     levelNameIndicator.setColor(0xFF, 0xFF, 0xFF, 0xFF);
@@ -84,19 +105,42 @@ bool gameInit() {
     levelSelector.setScrollable(true);
     levelSelector.setItemsToDisplay(3);
     
+    // level end text
+    winIndicator.setText("Level End");
+    winIndicator.setColor(0xFF, 0xFF, 0xFF, 0xFF);
+    winIndicator.setX(250);
+    winIndicator.setY(100);
+    winIndicator.setHeight(64);
+    winIndicator.detectWidth();
+    
+    timeIndicator.setColor(0xFF, 0xFF, 0x00, 0xFF);
+    timeIndicator.setX(250);
+    timeIndicator.setY(170);
+    timeIndicator.setHeight(32);
+    timeIndicator.detectWidth();
+    
+    endOptions.setPos(250, 210);
+    endOptions.setActive(true);
+    endOptions.setScrollable(false);
+    endOptions.addOption("RETRY", 0xFF, 0xFF, 0xFF, 0xFF);
+    endOptions.addOption("EDIT", 0xFF, 0xFF, 0xFF, 0xFF);
+    endOptions.addOption("MAIN MENU", 0xFF, 0xFF, 0xFF, 0xFF);
+    
+    // pause text
     pauseIndicator.setText("PAUSE");
-    pauseIndicator.setX(250);
-    pauseIndicator.setY(200);
+    pauseIndicator.setX(150);
+    pauseIndicator.setY(100);
     pauseIndicator.setHeight(52);
     pauseIndicator.detectWidth();
     pauseIndicator.setColor(0xFF, 0xFF, 0xFF, 0xFF);
     
-    pauseOptions.setPos(250, 300);
+    pauseOptions.setPos(150, 200);
     pauseOptions.setActive(true);
     pauseOptions.setScrollable(false);
     pauseOptions.addOption("Resume", 0xFF, 0xFF, 0xFF, 0xFF);
     pauseOptions.addOption("Main Menu", 0xFF, 0xFF, 0xFF, 0xFF);
     
+    // editor text
     editorIndicator.setText("EDITOR");
     editorIndicator.setColor(0x00, 0xFF, 0x00, 0xFF);
     editorIndicator.setX(10);
@@ -130,16 +174,29 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             level.saveLevel(levelFilename);
             
             currentGameState = GAME;
-            player.setPos(level.getStartX(), level.getStartY());
-            player.destroyRope();
-            player.destroyGrappleSeeker();
-            player.stop();
+            
+            resetLevel();
         }
     }
     
     if (currentGameState == GAME) {
         if (keys->getPauseState() == PRESSED) {
             currentGameState = PAUSE;
+        }
+        
+        if (keys->getResetState() == PRESSED) {
+            resetLevel();
+        }
+        
+        if (level.collideEndX(player.getX(), player.getY(), player.getWidth(), player.getHeight())) {
+            currentGameState = LEVEL_END;
+            secondsTaken = (SDL_GetTicks64() - startTicks) / 1000.0;
+            
+            char s[50];
+            snprintf(s, 50, "Time: %f secs", secondsTaken);
+            
+            timeIndicator.setText(s);
+            timeIndicator.detectWidth();
         }
         
         player.update(keys, &level);
@@ -163,6 +220,20 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         if (!updateMenu(keys, pressedLetters, numPressedLetters)) {
             return false;
         }
+    } else if (currentGameState == LEVEL_END) {
+        int endOption = endOptions.update(keys);
+        
+        if (endOption == 0) {
+            resetLevel();
+            currentGameState = GAME;
+        } else if (endOption == 1) {
+            resetLevel();
+            currentGameState = LEVEL_EDITOR;
+        } else if (endOption == 2) {
+            level.saveLevel(levelFilename);
+            level.resetLevel();
+            currentGameState = MENU;
+        }
     }
     
     return true;
@@ -178,7 +249,30 @@ void gameDraw(SDL_Renderer* renderer) {
     } else if (currentGameState == LEVEL_EDITOR) {
         level.draw(renderer);
         
-        SDL_SetRenderDrawColor(renderer, (currentLevelEditorMode == PLATFORM) ? 0x00 : 0xFF, 0x00, (currentLevelEditorMode == PLATFORM) ? 0xFF : 0x00, 0xFF);
+        int r, g, b, a;
+        if (currentLevelEditorMode == PLATFORM) {
+            r = 0x00;
+            g = 0xFF;
+            b = 0x00;
+            a = 0xFF;
+        } else if (currentLevelEditorMode == START_POINT) {
+            r = 0xFF;
+            g = 0x00;
+            b = 0x00;
+            a = 0xFF;
+        } else if (currentLevelEditorMode == END_POINT) {
+            r = 0xFF;
+            g = 0xFF;
+            b = 0x00;
+            a = 0xFF;
+        } else {
+            r = 0x00;
+            g = 0x00;
+            b = 0x00;
+            a = 0x00;
+        }
+        
+        SDL_SetRenderDrawColor(renderer, r, g, b, a);
         SDL_Rect cursorRect = { editorCursorX * PLATFORM_WIDTH - 1, editorCursorY * PLATFORM_WIDTH - 1, PLATFORM_WIDTH + 2, PLATFORM_HEIGHT + 2 };
         SDL_RenderDrawRect(renderer, &cursorRect);
         
@@ -192,6 +286,7 @@ void gameDraw(SDL_Renderer* renderer) {
     } else if (currentGameState == MENU) {
         title.draw(renderer);
         titleOptions.draw(renderer);
+        versionIndicator.draw(renderer);
         
         if (creatingLevel) {
             newLevelName.draw(renderer);
@@ -199,9 +294,11 @@ void gameDraw(SDL_Renderer* renderer) {
         } else if (selectingLevel) {
             levelSelector.draw(renderer);
         }
+    } else if (currentGameState == LEVEL_END) {
+        winIndicator.draw(renderer);
+        timeIndicator.draw(renderer);
+        endOptions.draw(renderer);
     }
-    
-    
 }
 
 void updateLevelEditor(KeyboardLayout *keys) {
@@ -257,30 +354,42 @@ void updateLevelEditor(KeyboardLayout *keys) {
         editorCursorY = 0;
     }
     
+    int platformExists = level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
+    int startPosHere = (editorCursorX * PLATFORM_WIDTH == level.getStartX() && editorCursorY * PLATFORM_HEIGHT == level.getStartY());
+    int endPosHere = (editorCursorX * PLATFORM_WIDTH == level.getEndX() && editorCursorY * PLATFORM_HEIGHT == level.getEndY());
+    
     if (keys->getJumpState()) {
         if (currentLevelEditorMode == PLATFORM) {
-            int platformExists = level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
-            
-            if (platformExists >= 0 && level.getPlatform(platformExists)->getType() != currentPlatformType) {
+            if (platformExists >= 0 &&
+                level.getPlatform(platformExists)->getType() != currentPlatformType) {
+                
                 level.removePlatform(platformExists);
-            }
-            
-            if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0 &&
-                !(editorCursorX * PLATFORM_WIDTH == level.getStartX() && editorCursorY * PLATFORM_HEIGHT == level.getStartY())) {
+                level.addPlatform(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPlatformType);
+            } else if (platformExists < 0 &&
+                !startPosHere &&
+                !endPosHere) {
+                
                 level.addPlatform(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPlatformType);
             }
         } else if (currentLevelEditorMode == START_POINT) {
-            if (level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT) < 0) {
+            if (platformExists < 0 &&
+                !endPosHere) {
+                
                 level.setStartPos(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
+            }
+        } else if (currentLevelEditorMode == END_POINT) {
+            if (platformExists < 0 &&
+                !startPosHere) {
+                
+                level.setEndPos(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
             }
         }
     }
     
     if (keys->getGrappleState()) {
         if (currentLevelEditorMode == PLATFORM) {
-            int platform = level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
-            if (platform >= 0) {
-                level.removePlatform(platform);
+            if (platformExists >= 0) {
+                level.removePlatform(platformExists);
             }
         }
     }
@@ -345,16 +454,16 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         levelSelector.update(keys);
     }
     
-    if (titleOptionsSelection == 0) {
+    if (titleOptionsSelection == 1) {
         creatingLevel = true;
         titleOptions.setActive(false);
-    } else if (titleOptionsSelection == 1) {
+    } else if (titleOptionsSelection == 2) {
         selectingLevel = true;
         titleOptions.setActive(false);
         levelSelector.setActive(true);
         
         updateAvailableLevels();
-    } else if (titleOptionsSelection == 2) {
+    } else if (titleOptionsSelection == 3) {
         return false;
     }
     
@@ -374,4 +483,13 @@ void updateAvailableLevels() {
             levelSelector.addOption((availableLevels.end()-1)->string(), 0xFF, 0xFF, 0xFF, 0xFF);
         }
     }
+}
+
+void resetLevel() {
+    player.setPos(level.getStartX(), level.getStartY());
+    player.stop();
+    player.destroyRope();
+    player.destroyGrappleSeeker();
+    
+    startTicks = SDL_GetTicks64();
 }
