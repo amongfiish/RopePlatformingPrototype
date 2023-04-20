@@ -27,6 +27,9 @@ const int WINDOW_HEIGHT = MAP_HEIGHT * PLATFORM_HEIGHT;
 
 const int FPS = 60;
 
+char pressedLetters[50];
+int numPressedLetters = 0;
+
 bool init();
 void cleanUp();
 
@@ -41,11 +44,19 @@ int main(int argc, char* argv[]) {
     while (running) {
         Uint32 startTicks = SDL_GetTicks();
         
+        numPressedLetters = 0;
+        
         mouseState.update();
         
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 running = false;
+            } else if (e.type == SDL_KEYDOWN) {
+                string keyName = SDL_GetKeyName(e.key.keysym.sym);
+                if (keyName.length() == 1 && ((keyName[0] >= 'A' && keyName[0] <= 'Z') || (keyName[0] >= '0' && keyName[0] <= '9'))) {
+                    pressedLetters[numPressedLetters] = keyName[0];
+                    numPressedLetters++;
+                }
             } else if (e.type == SDL_MOUSEBUTTONDOWN) {
                 if (e.button.button == SDL_BUTTON_LEFT) {
                     mouseState.setLeftClickState(PRESSED);
@@ -75,7 +86,9 @@ int main(int argc, char* argv[]) {
         const Uint8 *keys = SDL_GetKeyboardState(NULL);
         activeKeyboardLayout->update(keys);
         
-        gameUpdate(activeKeyboardLayout);
+        if (!gameUpdate(activeKeyboardLayout, pressedLetters, numPressedLetters)) {
+            running = false;
+        }
         
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(renderer);
@@ -123,9 +136,9 @@ bool init() {
     defaultLayout.setLeft(SDL_SCANCODE_LEFT);
     defaultLayout.setRight(SDL_SCANCODE_RIGHT);
     
-    defaultLayout.setConfirm(SDL_SCANCODE_C);
-    defaultLayout.setBack(SDL_SCANCODE_X);
-    defaultLayout.setPause(SDL_SCANCODE_ESCAPE);
+    defaultLayout.setConfirm(SDL_SCANCODE_RETURN);
+    defaultLayout.setBack(SDL_SCANCODE_ESCAPE);
+    defaultLayout.setPause(SDL_SCANCODE_BACKSPACE);
     
     defaultLayout.setJump(SDL_SCANCODE_C);
     defaultLayout.setGrapple(SDL_SCANCODE_X);

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #include "level.hpp"
 
@@ -7,7 +8,7 @@ Platform::Platform() {
     _x = 0;
     _y = 0;
     _width = 0;
-    _width = 0;
+    _height = 0;
     
     _type = NORMAL;
 }
@@ -171,8 +172,12 @@ void Level::draw(SDL_Renderer *renderer) {
 }
 
 void Level::saveLevel(string filename) {
+    if (!filesystem::exists(filesystem::path("levels"))) {
+        filesystem::create_directory(filesystem::path("levels"));
+    }
+    
     ofstream file;
-    file.open(filename);
+    file.open("levels/" + filename + ".lvl");
     
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
@@ -191,8 +196,12 @@ void Level::saveLevel(string filename) {
 }
 
 void Level::loadLevel(string filename) {
+    if (!filesystem::exists(filesystem::path("levels"))) {
+        filesystem::create_directory(filesystem::path("levels"));
+    }
+    
     ifstream file;
-    file.open(filename);
+    file.open("levels/" + filename + ".lvl");
     
     if (!file.fail()) {
         char currentPos;

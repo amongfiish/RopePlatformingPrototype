@@ -14,6 +14,9 @@
 using namespace std;
 
 enum GameMode {
+    MENU,
+    LEVEL_SELECTOR,
+    PAUSE,
     GAME,
     LEVEL_EDITOR
 };
@@ -34,7 +37,7 @@ const string EDITOR_MODE_STRINGS[2] = {
 bool gameInit();
 void gameCleanUp();
 
-bool gameUpdate(KeyboardLayout *keys);
+bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLetters);
 void gameDraw(SDL_Renderer *renderer);
 
 #endif
