@@ -201,7 +201,7 @@ void Level::loadLevel(string filename) {
     }
     
     ifstream file;
-    file.open("levels/" + filename + ".lvl");
+    file.open(filename);
     
     if (!file.fail()) {
         char currentPos;

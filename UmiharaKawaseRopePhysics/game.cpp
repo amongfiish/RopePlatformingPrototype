@@ -168,9 +168,12 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
 }
 
 void gameDraw(SDL_Renderer* renderer) {
-    if (currentGameState == GAME || currentGameState == PAUSE) {
+    if (currentGameState == GAME) {
         player.draw(renderer);
         level.draw(renderer);
+    } else if (currentGameState == PAUSE) {
+        pauseIndicator.draw(renderer);
+        pauseOptions.draw(renderer);
     } else if (currentGameState == LEVEL_EDITOR) {
         SDL_SetRenderDrawColor(renderer, (currentLevelEditorMode == PLATFORM) ? 0x00 : 0xFF, 0x00, (currentLevelEditorMode == PLATFORM) ? 0xFF : 0x00, 0xFF);
         SDL_Rect cursorRect = { editorCursorX * PLATFORM_WIDTH - 1, editorCursorY * PLATFORM_WIDTH - 1, PLATFORM_WIDTH + 2, PLATFORM_HEIGHT + 2 };
@@ -196,10 +199,7 @@ void gameDraw(SDL_Renderer* renderer) {
         }
     }
     
-    if (currentGameState == PAUSE) {
-        pauseIndicator.draw(renderer);
-        pauseOptions.draw(renderer);
-    }
+    
 }
 
 void updateLevelEditor(KeyboardLayout *keys) {
