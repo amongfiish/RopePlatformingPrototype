@@ -84,6 +84,11 @@ Level::Level() {
     _platforms = new Platform[10];
     _numberOfPlatforms = 0;
     _platformsCapacity = 10;
+    
+    _startX = 0;
+    _startY = 0;
+    _endX = 64;
+    _endY = 0;
 }
 
 Level::~Level() {
