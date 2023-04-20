@@ -207,7 +207,9 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             timeIndicator.detectWidth();
         }
         
-        player.update(keys, &level);
+        if (!player.update(keys, &level)) {
+            resetLevel();
+        }
     } else if (currentGameState == PAUSE) {
         int pauseSelection = pauseOptions.update(keys);
         

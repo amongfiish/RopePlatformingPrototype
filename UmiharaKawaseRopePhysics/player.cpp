@@ -344,15 +344,7 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
     }
     
     if ((_x + _width + 1 < 0 || _x > MAP_WIDTH * PLATFORM_WIDTH || _y + _height + 1 < 0 || _y > MAP_HEIGHT * PLATFORM_HEIGHT) && !_rope && !_grappleSeeker) {
-        _x = level->getStartX();
-        _y = level->getStartY();
-        stop();
-        
-        if (_rope) {
-            destroyRope();
-        } else if (_grappleSeeker) {
-            destroyGrappleSeeker();
-        }
+        return false;
     }
     
     return true;
