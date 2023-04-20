@@ -304,6 +304,8 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
                 
                 currentGameState = LEVEL_EDITOR;
                 
+                player.setPos(level.getStartX(), level.getStartY());
+                
                 level.resetLevel();
                 level.saveLevel(levelFilename);
                 return true;
@@ -334,6 +336,8 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         if (keys->getConfirmState() == PRESSED) {
             levelFilename = availableLevels[levelSelector.getSelection()].string();
             level.loadLevel(levelFilename);
+            
+            player.setPos(level.getStartX(), level.getStartY());
             
             currentGameState = GAME;
         }
