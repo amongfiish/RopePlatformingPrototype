@@ -202,12 +202,12 @@ void Level::draw(SDL_Renderer *renderer) {
 }
 
 void Level::saveLevel(string filename) {
-    if (!filesystem::exists(filesystem::path("levels"))) {
-        filesystem::create_directory(filesystem::path("levels"));
-    }
+    filesystem::path filePath(filename);
+    
+    filePath.replace_extension("lvl");
     
     ofstream file;
-    file.open(filename);
+    file.open(filePath.string());
     
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
@@ -228,10 +228,6 @@ void Level::saveLevel(string filename) {
 }
 
 void Level::loadLevel(string filename) {
-    if (!filesystem::exists(filesystem::path("levels"))) {
-        filesystem::create_directory(filesystem::path("levels"));
-    }
-    
     ifstream file;
     file.open(filename);
     

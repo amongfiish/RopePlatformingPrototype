@@ -56,6 +56,14 @@ void resetLevel();
 void updateAvailableLevels();
 
 bool gameInit() {
+    filesystem::path levels("levels");
+    
+    if (!filesystem::exists(levels)) {
+        filesystem::create_directory(levels);
+    }
+    
+    filesystem::current_path(levels);
+    
     // menu text
     title.initFont();
     editorIndicator.initFont();
@@ -471,15 +479,9 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
 }
 
 void updateAvailableLevels() {
-    filesystem::path levels("levels");
-    
-    if (!filesystem::exists(levels)) {
-        filesystem::create_directory(levels);
-    }
-    
-    for (auto const& dir_entry : std::filesystem::directory_iterator(levels)) {
+    for (auto const& dir_entry : std::filesystem::directory_iterator(filesystem::current_path())) {
         if (dir_entry.path().extension() == ".lvl") {
-            availableLevels.push_back(dir_entry.path());
+            availableLevels.push_back(dir_entry.path().filename());
             levelSelector.addOption((availableLevels.end()-1)->string(), 0xFF, 0xFF, 0xFF, 0xFF);
         }
     }
