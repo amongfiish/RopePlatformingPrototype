@@ -281,6 +281,8 @@ void Level::loadLevel(string filename) {
     if (!file.fail()) {
         file >> fastestTimeString;
         _fastestTime = stod(fastestTimeString);
+    } else {
+        _fastestTime = -1;
     }
     
     file.close();
