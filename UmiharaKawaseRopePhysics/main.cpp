@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <filesystem>
 
 #ifdef __APPLE__
 #include <SDL2/SDL.h>
@@ -34,6 +35,9 @@ bool init();
 void cleanUp();
 
 int main(int argc, char* argv[]) {
+    filesystem::path executablePath(argv[0]);
+    filesystem::current_path(executablePath.parent_path());
+    
     if (!init() || !gameInit()) {
         cleanUp();
         return -1;

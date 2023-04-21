@@ -79,7 +79,9 @@ string TextBox::getText() {
 }
 
 void TextBox::deleteLast() {
-    _text.pop_back();
+    if (_text.length() > 0) {
+        _text.pop_back();
+    }
 }
 
 int TextBox::getX() {

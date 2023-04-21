@@ -185,6 +185,7 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         if (currentGameState == GAME) {
             currentGameState = LEVEL_EDITOR;
         } else if (currentGameState == LEVEL_EDITOR) {
+            level.setFastestTime(-1);
             level.saveLevel(levelFilename);
             
             currentGameState = GAME;
