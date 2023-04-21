@@ -201,6 +201,10 @@ void TextSelection::addOption(string text, int r, int g, int b, int a) {
     }
 }
 
+void TextSelection::editOptionText(int i, string text) {
+    _text[i].setText(text);
+}
+
 void TextSelection::clearOptions() {
     _textLength = 0;
 }

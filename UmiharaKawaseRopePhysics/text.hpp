@@ -78,6 +78,7 @@ public:
     int getSelection();
     
     void addOption(string text, int r, int g, int b, int a);
+    void editOptionText(int i, string text);
     void clearOptions();
     
     void setPos(int x, int y);

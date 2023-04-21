@@ -137,6 +137,7 @@ bool gameInit() {
     endOptions.setScrollable(false);
     endOptions.addOption("RETRY", 0xFF, 0xFF, 0xFF, 0xFF);
     endOptions.addOption("EDIT", 0xFF, 0xFF, 0xFF, 0xFF);
+    endOptions.addOption("RESET FASTEST", 0xFF, 0xFF, 0xFF, 0xFF);
     endOptions.addOption("MAIN MENU", 0xFF, 0xFF, 0xFF, 0xFF);
     
     // pause text
@@ -263,6 +264,11 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             resetLevel();
             currentGameState = LEVEL_EDITOR;
         } else if (endOption == 2) {
+            level.setFastestTime(-1);
+            level.saveLevel(levelFilename);
+            fastestIndicator.setText("Fastest: no data");
+            fastestIndicator.detectWidth();
+        } else if (endOption == 3) {
             level.saveLevel(levelFilename);
             level.resetLevel();
             currentGameState = MENU;
