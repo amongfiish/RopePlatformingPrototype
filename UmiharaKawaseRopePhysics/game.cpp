@@ -451,6 +451,7 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
                 
                 level.setStartPos(0, 0);
                 level.setEndPos(64, 64);
+                level.setFastestTime(-1);
                 level.resetLevel();
                 
                 level.saveLevel(levelFilename);
