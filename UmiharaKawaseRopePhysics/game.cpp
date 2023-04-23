@@ -47,6 +47,9 @@ TextBox platformType;
 Uint64 startTicks;
 double secondsTaken;
 
+// in game text
+TextBox timer;
+
 int editorCursorX = MAP_WIDTH / 2;
 int editorCursorY = MAP_HEIGHT / 2;
 
@@ -172,6 +175,12 @@ bool gameInit() {
     platformType.setY(79);
     platformType.setHeight(30);
     
+    // game text
+    timer.setColor(0xFF, 0xFF, 0x00, 0xFF);
+    timer.setX(10);
+    timer.setY(5);
+    timer.setHeight(24);
+    
     return true;
 }
 
@@ -195,6 +204,11 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
     }
     
     if (currentGameState == GAME) {
+        char timerText[50];
+        snprintf(timerText, 50, "%.3f secs", (SDL_GetTicks64() - startTicks) / 1000.0);
+        timer.setText(timerText);
+        timer.detectWidth();
+        
         if (keys->getPauseState() == PRESSED) {
             currentGameState = PAUSE;
         }
@@ -283,6 +297,7 @@ void gameDraw(SDL_Renderer* renderer) {
     if (currentGameState == GAME) {
         player.draw(renderer);
         level.draw(renderer);
+        timer.draw(renderer);
     } else if (currentGameState == PAUSE) {
         pauseIndicator.draw(renderer);
         pauseOptions.draw(renderer);
