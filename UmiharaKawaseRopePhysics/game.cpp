@@ -176,7 +176,7 @@ bool gameInit() {
     platformType.setHeight(30);
     
     // game text
-    timer.setColor(0xFF, 0xFF, 0x00, 0xFF);
+    timer.setColor(0x88, 0x88, 0x00, 0xFF);
     timer.setX(10);
     timer.setY(5);
     timer.setHeight(24);
@@ -205,7 +205,7 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
     
     if (currentGameState == GAME) {
         char timerText[50];
-        snprintf(timerText, 50, "%.3f secs", (SDL_GetTicks64() - startTicks) / 1000.0);
+        snprintf(timerText, 50, "%.3f", (SDL_GetTicks64() - startTicks) / 1000.0);
         timer.setText(timerText);
         timer.detectWidth();
         
@@ -229,15 +229,15 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             }
             
             char s[50];
-            snprintf(s, 50, "Time: %f secs", secondsTaken);
+            snprintf(s, 50, "Time: %.3f secs", secondsTaken);
             
             timeIndicator.setText(s);
             timeIndicator.detectWidth();
             
             if (!newFastest) {
-                snprintf(s, 50, "Fastest: %f secs", level.getFastestTime());
+                snprintf(s, 50, "Fastest: %.3f secs", level.getFastestTime());
             } else {
-                snprintf(s, 50, "Fastest: %f secs *NEW*", level.getFastestTime());
+                snprintf(s, 50, "Fastest: %.3f secs *NEW*", level.getFastestTime());
             }
                 
             fastestIndicator.setText(s);

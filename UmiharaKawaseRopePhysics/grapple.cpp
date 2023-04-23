@@ -59,7 +59,9 @@ CollisionReportContainer::CollisionReportContainer() {
 }
 
 CollisionReportContainer::~CollisionReportContainer() {
-    delete[] _reports;
+    if (_reports) {
+        delete[] _reports;
+    }
 }
 
 void CollisionReportContainer::addReport(float x, float y) {
@@ -753,13 +755,20 @@ int Rope::collideCorners(Level *level) {
             diffY = level->getPlatform(i)->getY() - _player->getY();
             newDistance = sqrt(pow(diffX, 2) + pow(diffY, 2));
             
-            diffX = container.getReport(0)->getPlatform()->getX() - _player->getX();
-            diffY = container.getReport(0)->getPlatform()->getY() - _player->getY();
-            oldDistance = sqrt(pow(diffX, 2) + pow(diffY, 2));
-            
-            if (newDistance < oldDistance) {
-                container.clear();
+            if (container.getNumberOfReports() > 0) {
+                diffX = container.getReport(0)->getPlatform()->getX() - _player->getX();
+                diffY = container.getReport(0)->getPlatform()->getY() - _player->getY();
+                oldDistance = sqrt(pow(diffX, 2) + pow(diffY, 2));
                 
+                if (newDistance < oldDistance) {
+                    container.clear();
+                    
+                    for (int j = 0; j < collisions->getNumberOfReports(); j++) {
+                        container.addReport(collisions->getReport(j)->getIntersectionX(), collisions->getReport(j)->getIntersectionY());
+                        container.getReport(j)->setPlatform(collisions->getReport(j)->getPlatform());
+                    }
+                }
+            } else {
                 for (int j = 0; j < collisions->getNumberOfReports(); j++) {
                     container.addReport(collisions->getReport(j)->getIntersectionX(), collisions->getReport(j)->getIntersectionY());
                     container.getReport(j)->setPlatform(collisions->getReport(j)->getPlatform());
@@ -767,64 +776,99 @@ int Rope::collideCorners(Level *level) {
             }
         }
         
-        delete[] collisions;
+        delete collisions;
     }
     
-    bool left = false;
-    bool right = false;
-    bool up = false;
-    bool down = false;
-    
-    bool movingLeft = false;
-    bool movingRight = false;
-    bool movingUp = false;
-    bool movingDown = false;
-    
-    bool collidingLeft = false;
-    bool collidingRight = false;
-    bool collidingUp = false;
-    bool collidingDown = false;
-    
-    if (_player->getX() + _player->getWidth() / 2 < container.getReport(0)->getPlatform()->getX()) {
-        left = true;
-    } else if (_player->getX() + _player->getWidth() / 2 > container.getReport(0)->getPlatform()->getX() + container.getReport(0)->getPlatform()->getWidth()) {
-        right = true;
-    }
-    
-    if (_player->getY() + _player->getHeight() / 2 < container.getReport(0)->getPlatform()->getY()) {
-        up = true;
-    } else if (_player->getY() + _player->getHeight() / 2 > container.getReport(0)->getPlatform()->getY() + container.getReport(0)->getPlatform()->getHeight()) {
-        down = true;
-    }
-    
-    if (_player->getVelocityX() < 0) {
-        movingLeft = true;
-    } else if (_player->getVelocityX() > 0) {
-        movingRight = true;
-    }
-    
-    if (_player->getVelocityY() < 0) {
-        movingUp = true;
-    } else if (_player->getVelocityY() > 0) {
-        movingDown = true;
-    }
-    
-    for (int i = 0; i < container.getNumberOfReports(); i++) {
-        if (container.getReport(i)->getIntersectionX() == container.getReport(i)->getPlatform()->getX()) {
-            collidingLeft = true;
-        } else if (container.getReport(i)->getIntersectionX() == container.getReport(i)->getPlatform()->getX() + container.getReport(i)->getPlatform()->getWidth() - 1) {
-            collidingRight = true;
+    if (container.getNumberOfReports()) {
+        bool left = false;
+        bool right = false;
+        bool up = false;
+        bool down = false;
+        
+        bool movingLeft = false;
+        bool movingRight = false;
+        bool movingUp = false;
+        bool movingDown = false;
+        
+        bool collidingLeft = false;
+        bool collidingRight = false;
+        bool collidingUp = false;
+        bool collidingDown = false;
+        
+        if (_player->getX() + _player->getWidth() / 2 < container.getReport(0)->getPlatform()->getX()) {
+            left = true;
+        } else if (_player->getX() + _player->getWidth() / 2 > container.getReport(0)->getPlatform()->getX() + container.getReport(0)->getPlatform()->getWidth()) {
+            right = true;
         }
         
-        if (container.getReport(i)->getIntersectionY() == container.getReport(i)->getPlatform()->getY()) {
-            collidingUp = true;
-        } else if (container.getReport(i)->getIntersectionY() == container.getReport(i)->getPlatform()->getY() + container.getReport(i)->getPlatform()->getHeight() - 1) {
-            collidingDown = true;
+        if (_player->getY() + _player->getHeight() / 2 < container.getReport(0)->getPlatform()->getY()) {
+            up = true;
+        } else if (_player->getY() + _player->getHeight() / 2 > container.getReport(0)->getPlatform()->getY() + container.getReport(0)->getPlatform()->getHeight()) {
+            down = true;
         }
-    }
-    
-    if ((collidingLeft && collidingUp) && (up || left) && (movingRight || movingDown)) {
-        addPivot(container.getReport(0)->getPlatform(), TOP_LEFT);
+        
+        if (_player->getVelocityX() < 0) {
+            movingLeft = true;
+        } else if (_player->getVelocityX() > 0) {
+            movingRight = true;
+        }
+        
+        if (_player->getVelocityY() < 0) {
+            movingUp = true;
+        } else if (_player->getVelocityY() > 0) {
+            movingDown = true;
+        }
+        
+        for (int i = 0; i < container.getNumberOfReports(); i++) {
+//            printf("pX: %d, pY: %d, pW: %d, pH: %d\n", container.getReport(i)->getPlatform()->getX(), container.getReport(i)->getPlatform()->getY(), container.getReport(i)->getPlatform()->getWidth(), container.getReport(i)->getPlatform()->getHeight());
+//            printf("iX: %f, iY: %f\n", container.getReport(i)->getIntersectionX(), container.getReport(i)->getIntersectionY());
+            
+            if (container.getReport(i)->getIntersectionX() == container.getReport(i)->getPlatform()->getX()) {
+                collidingLeft = true;
+            } else if (container.getReport(i)->getIntersectionX() == container.getReport(i)->getPlatform()->getX() + container.getReport(i)->getPlatform()->getWidth()) {
+                collidingRight = true;
+            }
+            
+            if (container.getReport(i)->getIntersectionY() == container.getReport(i)->getPlatform()->getY()) {
+                collidingUp = true;
+            } else if (container.getReport(i)->getIntersectionY() == container.getReport(i)->getPlatform()->getY() + container.getReport(i)->getPlatform()->getHeight()) {
+                collidingDown = true;
+            }
+        }
+        
+//        printf("l: %d, r: %d, u: %d, d: %d, mL: %d, mR: %d, mU: %d, mD: %d, cL: %d, cR: %d, cU: %d, cD: %d\n", left, right, up, down, movingLeft, movingRight, movingUp, movingDown, collidingLeft, collidingRight, collidingUp, collidingDown);
+        
+        if ((collidingLeft && collidingUp) && (up || left) && (movingRight || movingDown)) {
+//            printf("TOP LEFT\n");
+            addPivot(container.getReport(0)->getPlatform(), TOP_LEFT);
+        } else if ((collidingRight && collidingUp) && (up || right) && (movingLeft || movingDown)) {
+//            printf("TOP RIGHT\n");
+            addPivot(container.getReport(0)->getPlatform(), TOP_RIGHT);
+        } else if ((collidingLeft && collidingDown) && (down || left) && (movingRight || movingUp)) {
+//            printf("BOTTOM LEFT\n");
+            addPivot(container.getReport(0)->getPlatform(), BOTTOM_LEFT);
+        } else if ((collidingRight && collidingDown) && (down || right) && (movingLeft || movingUp)) {
+//            printf("BOTTOM RIGHT\n");
+            addPivot(container.getReport(0)->getPlatform(), BOTTOM_RIGHT);
+        } else if ((collidingUp && collidingDown)) {
+            if (down) {
+                if (movingRight) {
+                    addPivot(container.getReport(0)->getPlatform(), TOP_LEFT);
+                    addPivot(container.getReport(0)->getPlatform(), BOTTOM_LEFT);
+                } else if (movingLeft) {
+                    addPivot(container.getReport(0)->getPlatform(), TOP_RIGHT);
+                    addPivot(container.getReport(0)->getPlatform(), BOTTOM_RIGHT);
+                }
+            } else if (up) {
+                if (movingRight) {
+                    addPivot(container.getReport(0)->getPlatform(), BOTTOM_LEFT);
+                    addPivot(container.getReport(0)->getPlatform(), TOP_LEFT);
+                } else if (movingLeft) {
+                    addPivot(container.getReport(0)->getPlatform(), BOTTOM_RIGHT);
+                    addPivot(container.getReport(0)->getPlatform(), TOP_RIGHT);
+                }
+            }
+        }
     }
     
     return -1;
@@ -924,6 +968,22 @@ bool Rope::update(Level *level) {
                     (_pivots[_numberOfPivots - 1].getAttachAngle() > getCurrentAngle() && _pivots[_numberOfPivots - 1].getAttachAngle() < _previousAngle)) &&
                    !((getCurrentAngle() > M_PI_2 && _previousAngle < -M_PI_2) || (_previousAngle > M_PI_2 && getCurrentAngle() < -M_PI_2))) {
             _numberOfPivots--;
+        }
+        
+        if (_numberOfPivots) {
+            if (_pivots[_numberOfPivots - 1].getAttachAngle() > M_PI_2 &&  // top right sector
+                ((_previousAngle > M_PI_2 && _previousAngle < _pivots[_numberOfPivots - 1].getAttachAngle() && getCurrentAngle() < -M_PI_2) ||
+                 (getCurrentAngle() > M_PI_2 && getCurrentAngle() < _pivots[_numberOfPivots - 1].getAttachAngle() && _previousAngle < -M_PI_2))) {
+                _numberOfPivots--;
+            } else if (_pivots[_numberOfPivots - 1].getAttachAngle() < -M_PI_2 &&  // bottom right sector
+                       ((_previousAngle < -M_PI_2 && _previousAngle > _pivots[_numberOfPivots - 1].getAttachAngle() && getCurrentAngle() > M_PI_2) ||
+                        (getCurrentAngle() < -M_PI_2 && getCurrentAngle() > _pivots[_numberOfPivots - 1].getAttachAngle() && _previousAngle > M_PI_2))) {
+                _numberOfPivots--;
+            } else if (((_pivots[_numberOfPivots - 1].getAttachAngle() < getCurrentAngle() && _pivots[_numberOfPivots - 1].getAttachAngle() > _previousAngle) ||
+                        (_pivots[_numberOfPivots - 1].getAttachAngle() > getCurrentAngle() && _pivots[_numberOfPivots - 1].getAttachAngle() < _previousAngle)) &&
+                       !((getCurrentAngle() > M_PI_2 && _previousAngle < -M_PI_2) || (_previousAngle > M_PI_2 && getCurrentAngle() < -M_PI_2))) {
+                _numberOfPivots--;
+            }
         }
     }
     collideCorners(level);
