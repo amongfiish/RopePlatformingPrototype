@@ -4,7 +4,7 @@
 #include "player.hpp"
 #include "level.hpp"
 
-enum CORNERS {
+enum Corners {
     TOP_LEFT,
     TOP_RIGHT,
     BOTTOM_LEFT,
@@ -53,6 +53,8 @@ public:
     CollisionReport *getReport(int i);
     
     int getNumberOfReports();
+    
+    void clear();
     
 private:
     CollisionReport *_reports;
@@ -145,6 +147,8 @@ public:
     
     Pivot *getPivots();
     void setNumberOfPivots(int x);
+    
+    void addPivot(Platform *platform, int corner);
     
     bool update(Level *level);
     void draw(SDL_Renderer *renderer);
