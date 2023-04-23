@@ -144,8 +144,6 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
         _aim = DOWNRIGHT;
     }
     
-    
-    
     // movement
     if (_aim < 0) {
         if (_grounded) {

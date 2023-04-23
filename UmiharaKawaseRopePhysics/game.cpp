@@ -105,7 +105,7 @@ bool gameInit() {
     newLevelName.setTextOffset(5);
     newLevelName.setFontSize(24);
     
-    levelSelector.setPos(350, 160);
+    levelSelector.setPos(350, 200);
     levelSelector.setActive(true);
     levelSelector.setScrollable(true);
     levelSelector.setItemsToDisplay(3);
@@ -215,7 +215,6 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             }
         }
         timer.setText(timerText);
-        timer.detectWidth();
         
         if (keys->getPauseState() == PRESSED) {
             currentGameState = PAUSE;
@@ -313,7 +312,7 @@ void gameDraw(SDL_Renderer* renderer) {
     if (currentGameState == GAME) {
         player.draw(renderer);
         level.draw(renderer);
-        timerBackground.setWidth(timer.getWidth());
+        timerBackground.setWidth(timer.getWidth() + 10);
         timerBackground.draw(renderer);
         timer.draw(renderer);
     } else if (currentGameState == PAUSE) {

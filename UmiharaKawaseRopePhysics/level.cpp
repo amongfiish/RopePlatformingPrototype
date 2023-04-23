@@ -126,9 +126,9 @@ void Level::setStartPos(int x, int y) {
 }
 
 bool Level::collideEndX(int x, int y, int w, int h) {
-    if (x + w >= _endX &&
+    if (x + w - 1 >= _endX &&
         x < _endX + PLATFORM_WIDTH &&
-        y + h >= _endY &&
+        y + h - 1 >= _endY &&
         y < _endY + PLATFORM_HEIGHT) {
         
         return true;
