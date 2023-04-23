@@ -20,6 +20,11 @@ enum PlatformTypes {
 constexpr int NUMBER_OF_PLATFORM_TYPES = 3;
 const string PLATFORM_TYPE_STRINGS[NUMBER_OF_PLATFORM_TYPES] = { "NORMAL", "METAL", "ICE" };
 
+const SDL_Color NORMAL_COLOR = { 0xFF, 0xFF, 0xFF, 0xFF };
+const SDL_Color METAL_COLOR = { 0x6B, 0x6B, 0x6B, 0xFF };
+const SDL_Color ICE_COLOR = { 0x00, 0xA2, 0xFF, 0xFF };
+const SDL_Color LAVA_COLOR = { 0xFF, 0xC3, 0x00, 0xFF };
+
 const int PLATFORM_WIDTH = 32;
 const int PLATFORM_HEIGHT = 32;
 const int MAP_WIDTH = 25;

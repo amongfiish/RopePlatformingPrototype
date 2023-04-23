@@ -72,6 +72,8 @@ public:
     void createRope(int gX, int gY);
     void destroyRope();
     
+    bool isGrappling();
+    
     Platform *getGroundedPlatform();
     
     Rope *getRope();

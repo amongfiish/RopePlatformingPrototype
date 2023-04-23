@@ -68,13 +68,18 @@ int Platform::getType() {
 }
 
 void Platform::draw(SDL_Renderer *renderer) {
-    if (_type == NORMAL) {
-        SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    } else if (_type == METAL) {
-        SDL_SetRenderDrawColor(renderer, 0xAA, 0xAA, 0xAA, 0xFF);
-    } else if (_type == ICE) {
-        SDL_SetRenderDrawColor(renderer, 0xC0, 0xEE, 0xFF, 0xFF);
+    switch (_type) {
+        case NORMAL:
+            SDL_SetRenderDrawColor(renderer, NORMAL_COLOR.r, NORMAL_COLOR.g, NORMAL_COLOR.b, NORMAL_COLOR.a);
+            break;
+        case METAL:
+            SDL_SetRenderDrawColor(renderer, METAL_COLOR.r, METAL_COLOR.g, METAL_COLOR.b, METAL_COLOR.a);
+            break;
+        case ICE:
+            SDL_SetRenderDrawColor(renderer, ICE_COLOR.r, ICE_COLOR.g, ICE_COLOR.b, ICE_COLOR.a);
+            break;
     }
+    
         
     SDL_Rect rect = { _x, _y, _width, _height };
     SDL_RenderFillRect(renderer, &rect);

@@ -75,6 +75,14 @@ void Player::destroyRope() {
     _rope = NULL;
 }
 
+bool Player::isGrappling() {
+    if (_rope || _grappleSeeker) {
+        return true;
+    }
+    
+    return false;
+}
+
 Platform *Player::getGroundedPlatform() {
     return _groundedPlatform;
 }

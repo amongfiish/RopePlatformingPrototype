@@ -135,6 +135,8 @@ bool init() {
         return false;
     }
     
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    
     defaultLayout.setUp(SDL_SCANCODE_UP);
     defaultLayout.setDown(SDL_SCANCODE_DOWN);
     defaultLayout.setLeft(SDL_SCANCODE_LEFT);

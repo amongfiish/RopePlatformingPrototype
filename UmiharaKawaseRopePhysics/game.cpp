@@ -7,7 +7,7 @@
 #include "text.hpp"
 using namespace std;
 
-const string VERSION = "indev 6";
+const string VERSION = "indev 6-7";
 
 int currentGameState = MENU;
 int currentLevelEditorMode = PLATFORM;
@@ -46,9 +46,11 @@ TextBox platformType;
 
 Uint64 startTicks;
 double secondsTaken;
+bool timerStarted;
 
 // in game text
 TextBox timer;
+ColorBlock timerBackground;
 
 int editorCursorX = MAP_WIDTH / 2;
 int editorCursorY = MAP_HEIGHT / 2;
@@ -67,24 +69,16 @@ bool gameInit() {
     }
     
     // menu text
-    title.initFont();
-    editorIndicator.initFont();
-    versionIndicator.initFont();
-    editorMode.initFont();
-    platformType.initFont();
-    winIndicator.initFont();
-    timeIndicator.initFont();
-    
     title.setText("Grappling Hook Prototype");
     title.setColor(0xFF, 0xFF, 0xFF, 0xFF);
     title.setX(10);
     title.setY(0);
-    title.setHeight(64);
-    title.detectWidth();
+    title.initFont(64);
     
     titleOptions.setPos(32, 100);
     titleOptions.setActive(true);
     titleOptions.setScrollable(false);
+    titleOptions.setFontSize(24);
     titleOptions.addOption("CAMPAIGN", 0xFF, 0xFF, 0xFF, 0xFF);
     titleOptions.addOption("NEW LEVEL", 0xFF, 0xFF, 0xFF, 0xFF);
     titleOptions.addOption("LOAD LEVEL", 0xFF, 0xFF, 0xFF, 0xFF);
@@ -92,52 +86,52 @@ bool gameInit() {
     
     versionIndicator.setText(VERSION);
     versionIndicator.setColor(0xFF, 0xFF, 0xFF, 0xFF);
-    versionIndicator.setX(675);
+    versionIndicator.setX(690);
     versionIndicator.setY(450);
-    versionIndicator.setHeight(24);
-    versionIndicator.detectWidth();
+    versionIndicator.initFont(18);
     
     levelNameIndicator.setText("Level name:");
     levelNameIndicator.setColor(0xFF, 0xFF, 0xFF, 0xFF);
     levelNameIndicator.setX(350);
-    levelNameIndicator.setY(100);
-    levelNameIndicator.setHeight(32);
-    levelNameIndicator.detectWidth();
+    levelNameIndicator.setY(115);
+    levelNameIndicator.initFont(24);
     
     newLevelName.setX(350);
     newLevelName.setY(150);
-    newLevelName.setWidth(200);
-    newLevelName.setHeight(52);
-    newLevelName.setColor(0x00, 0x00, 0x00, 0xFF);
+    newLevelName.setTextColor(0x00, 0x00, 0x00, 0xFF);
+    newLevelName.setBackgroundColor(0xFF, 0xFF, 0xFF, 0xFF);
+    newLevelName.setBackgroundWidth(200);
+    newLevelName.setBackgroundHeight(40);
+    newLevelName.setTextOffset(5);
+    newLevelName.setFontSize(24);
     
-    levelSelector.setPos(350, 250);
+    levelSelector.setPos(350, 160);
     levelSelector.setActive(true);
     levelSelector.setScrollable(true);
     levelSelector.setItemsToDisplay(3);
+    levelSelector.setFontSize(24);
     
     // level end text
     winIndicator.setText("Level End");
     winIndicator.setColor(0xFF, 0xFF, 0xFF, 0xFF);
     winIndicator.setX(250);
     winIndicator.setY(100);
-    winIndicator.setHeight(64);
-    winIndicator.detectWidth();
+    winIndicator.initFont(48);
     
     timeIndicator.setColor(0xFF, 0xFF, 0x00, 0xFF);
     timeIndicator.setX(250);
     timeIndicator.setY(170);
-    timeIndicator.setHeight(32);
-    timeIndicator.detectWidth();
+    timeIndicator.initFont(24);
     
     fastestIndicator.setColor(0xFF, 0xFF, 0x00, 0xFF);
     fastestIndicator.setX(250);
     fastestIndicator.setY(210);
-    fastestIndicator.setHeight(32);
-    fastestIndicator.detectWidth();
+    fastestIndicator.initFont(24);
     
     endOptions.setPos(250, 250);
     endOptions.setActive(true);
     endOptions.setScrollable(false);
+    endOptions.setFontSize(24);
     endOptions.addOption("RETRY", 0xFF, 0xFF, 0xFF, 0xFF);
     endOptions.addOption("EDIT", 0xFF, 0xFF, 0xFF, 0xFF);
     endOptions.addOption("RESET FASTEST", 0xFF, 0xFF, 0xFF, 0xFF);
@@ -145,41 +139,47 @@ bool gameInit() {
     
     // pause text
     pauseIndicator.setText("IN-GAME MENU");
-    pauseIndicator.setX(150);
+    pauseIndicator.setX(250);
     pauseIndicator.setY(100);
-    pauseIndicator.setHeight(52);
-    pauseIndicator.detectWidth();
     pauseIndicator.setColor(0xFF, 0xFF, 0xFF, 0xFF);
+    pauseIndicator.initFont(48);
     
-    pauseOptions.setPos(150, 200);
+    pauseOptions.setPos(250, 170);
     pauseOptions.setActive(true);
     pauseOptions.setScrollable(false);
-    pauseOptions.addOption("Resume", 0xFF, 0xFF, 0xFF, 0xFF);
-    pauseOptions.addOption("Main Menu", 0xFF, 0xFF, 0xFF, 0xFF);
+    pauseOptions.setFontSize(24);
+    pauseOptions.addOption("RESUME", 0xFF, 0xFF, 0xFF, 0xFF);
+    pauseOptions.addOption("RETRY", 0xFF, 0xFF, 0xFF, 0xFF);
+    pauseOptions.addOption("MAIN MENU", 0xFF, 0xFF, 0xFF, 0xFF);
     
     // editor text
     editorIndicator.setText("EDITOR");
     editorIndicator.setColor(0x00, 0xFF, 0x00, 0xFF);
     editorIndicator.setX(10);
     editorIndicator.setY(5);
-    editorIndicator.setHeight(30);
-    editorIndicator.detectWidth();
+    editorIndicator.initFont(24);
     
     editorMode.setColor(0x00, 0xFF, 0x00, 0xFF);
     editorMode.setX(10);
     editorMode.setY(42);
-    editorMode.setHeight(30);
+    editorMode.initFont(24);
     
     platformType.setColor(0x00, 0xFF, 0x00, 0xFF);
     platformType.setX(10);
     platformType.setY(79);
-    platformType.setHeight(30);
+    platformType.initFont(24);
     
     // game text
-    timer.setColor(0x88, 0x88, 0x00, 0xFF);
-    timer.setX(10);
-    timer.setY(5);
-    timer.setHeight(24);
+    timer.setColor(0xFF, 0xFF, 0x00, 0xFF);
+    timer.setX(5);
+    timer.setY(2);
+    timer.initFont(24);
+    
+    timerBackground.setX(0);
+    timerBackground.setY(0);
+    timerBackground.setWidth(100);
+    timerBackground.setHeight(32);
+    timerBackground.setColor(0x00, 0x00, 0x00, 0x77);
     
     return true;
 }
@@ -205,7 +205,15 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
     
     if (currentGameState == GAME) {
         char timerText[50];
-        snprintf(timerText, 50, "%.3f", (SDL_GetTicks64() - startTicks) / 1000.0);
+        if (timerStarted) {
+            snprintf(timerText, 50, "%.3f", (SDL_GetTicks64() - startTicks) / 1000.0);
+        } else {
+            snprintf(timerText, 50, "%.3f", 0.0);
+            if (player.getX() != level.getStartX() || player.getY() != level.getStartY() || player.isGrappling()) {
+                timerStarted = true;
+                startTicks = SDL_GetTicks64();
+            }
+        }
         timer.setText(timerText);
         timer.detectWidth();
         
@@ -252,11 +260,19 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         
         if (keys->getPauseState() == PRESSED) {
             currentGameState = GAME;
+            pauseOptions.resetSelection();
         }
         
         if (pauseSelection == 0) {
+            pauseOptions.resetSelection();
             currentGameState = GAME;
         } else if (pauseSelection == 1) {
+            resetLevel();
+            pauseOptions.resetSelection();
+            currentGameState = GAME;
+        } else if (pauseSelection == 2) {
+            pauseOptions.resetSelection();
+            
             level.saveLevel(levelFilename);
             currentGameState = MENU;
             level.resetLevel();
@@ -297,6 +313,8 @@ void gameDraw(SDL_Renderer* renderer) {
     if (currentGameState == GAME) {
         player.draw(renderer);
         level.draw(renderer);
+        timerBackground.setWidth(timer.getWidth());
+        timerBackground.draw(renderer);
         timer.draw(renderer);
     } else if (currentGameState == PAUSE) {
         pauseIndicator.draw(renderer);
@@ -373,8 +391,10 @@ void updateLevelEditor(KeyboardLayout *keys) {
     
     if (keys->getNextPlatformTypeState() == PRESSED) {
         currentPlatformType++;
+        currentLevelEditorMode = PLATFORM;
     }
     if (keys->getPreviousPlatformTypeState() == PRESSED) {
+        currentLevelEditorMode = PLATFORM;
         currentPlatformType--;
     }
     
@@ -462,21 +482,34 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
     if (creatingLevel) {
         if (keys->getConfirmState() == PRESSED) {
             if (newLevelName.getText() != "") {
-                levelFilename = newLevelName.getText();
+                bool levelExists = false;
+                updateAvailableLevels();
+                for (int i = 0; i < availableLevels.size(); i++) {
+                    if (newLevelName.getText() == availableLevels[i]) {
+                        levelExists = true;
+                    }
+                }
+                levelSelector.clearOptions();
+                availableLevels.clear();
                 
-                creatingLevel = false;
-                titleOptions.setActive(true);
+                if (!levelExists) {
+                    levelFilename = newLevelName.getText();
+                    
+                    creatingLevel = false;
+                    titleOptions.setActive(true);
+                    
+                    currentGameState = LEVEL_EDITOR;
+                    
+                    player.setPos(level.getStartX(), level.getStartY());
+                    
+                    level.setStartPos(32, (MAP_HEIGHT - 2) * PLATFORM_HEIGHT);
+                    level.setEndPos(96, (MAP_HEIGHT - 2) * PLATFORM_HEIGHT);
+                    level.setFastestTime(-1);
+                    level.resetLevel();
+                    
+                    level.saveLevel(levelFilename);
+                }
                 
-                currentGameState = LEVEL_EDITOR;
-                
-                player.setPos(level.getStartX(), level.getStartY());
-                
-                level.setStartPos(0, 0);
-                level.setEndPos(64, 64);
-                level.setFastestTime(-1);
-                level.resetLevel();
-                
-                level.saveLevel(levelFilename);
                 return true;
             }
         } else {
@@ -547,5 +580,5 @@ void resetLevel() {
     player.destroyRope();
     player.destroyGrappleSeeker();
     
-    startTicks = SDL_GetTicks64();
+    timerStarted = false;
 }

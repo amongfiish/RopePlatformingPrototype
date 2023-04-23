@@ -26,17 +26,19 @@ TextBox::~TextBox() {
 }
 
 bool TextBox::initFont() {
-    return initFont(TEXT_SIZE);
+    return initFont(DEFAULT_TEXT_SIZE);
 }
 
 bool TextBox::initFont(int fontSize) {
+    if (_font) {
+        TTF_CloseFont(_font);
+    }
+    
+    _font = TTF_OpenFont("font.ttf", fontSize);
+    
     if (!_font) {
-        _font = TTF_OpenFont("font.ttf", TEXT_SIZE);
-        
-        if (!_font) {
-            printf("Couldn't open font. Error: %s\n", TTF_GetError());
-            return false;
-        }
+        printf("Couldn't open font. Error: %s\n", TTF_GetError());
+        return false;
     }
     
     return true;
@@ -109,7 +111,9 @@ void TextBox::draw(SDL_Renderer *renderer) {
 }
 
 void TextBox::draw(SDL_Renderer *renderer, int x, int y) {
-    initFont(TEXT_SIZE);
+    if (!_font) {
+        initFont(DEFAULT_TEXT_SIZE);
+    }
     
     if (_text != _previousText || !_renderedText) {
         if (_renderedText) {
@@ -117,10 +121,12 @@ void TextBox::draw(SDL_Renderer *renderer, int x, int y) {
         }
         
 //        printf("_text: %s\n", _text.c_str());
-        SDL_Surface *textSurface = TTF_RenderText_Solid(_font, _text.c_str(), _color);
+        SDL_Surface *textSurface = TTF_RenderText_Blended(_font, _text.c_str(), _color);
         _renderedText = SDL_CreateTextureFromSurface(renderer, textSurface);
         SDL_FreeSurface(textSurface);
     }
+    
+    SDL_QueryTexture(_renderedText, NULL, NULL, &_width, &_height);
     
     SDL_Rect textRect = { x, y, _width, _height };
     SDL_RenderCopy(renderer, _renderedText, NULL, &textRect);
@@ -145,7 +151,7 @@ TextSelection::TextSelection() {
     _textLength = 0;
     _textCapacity = 10;
     
-    _fontSize = TEXT_SIZE;
+    _fontSize = DEFAULT_TEXT_SIZE;
     _textHeight = 32;
     _textSpacing = 5;
     
@@ -173,13 +179,15 @@ int TextSelection::getSelection() {
     return _selection;
 }
 
+void TextSelection::resetSelection() {
+    _selection = 0;
+}
+
 void TextSelection::addOption(string text, int r, int g, int b, int a) {
     _text[_textLength].setText(text);
     _text[_textLength].setColor(r, g, b, a);
     _text[_textLength].setX(_x);
     _text[_textLength].setY(_y + _textHeight * _textLength + _textSpacing * _textLength);
-    _text[_textLength].setHeight(_textHeight);
-    _text[_textLength].detectWidth();
     _text[_textLength].initFont(_fontSize);
     
     _textLength++;
@@ -211,6 +219,14 @@ void TextSelection::clearOptions() {
     _textLength = 0;
 }
 
+void TextSelection::setFontSize(int fontSize) {
+    _fontSize = fontSize;
+    
+    TTF_Font *testFont = TTF_OpenFont("font.ttf", fontSize);
+    _textHeight = TTF_FontHeight(testFont);
+    TTF_CloseFont(testFont);
+}
+
 void TextSelection::setPos(int x, int y) {
     _x = x;
     _y = y;
@@ -225,7 +241,7 @@ void TextSelection::setPos(int x, int y) {
 }
 
 int TextSelection::update(KeyboardLayout *keys) {
-    _selector.initFont();
+    _selector.initFont(_fontSize);
     
     if (_active) {
         if (keys->getUpState() == PRESSED) {
@@ -275,13 +291,10 @@ TextInput::TextInput() {
 TextInput::TextInput(int x, int y, int w, int h) {
     _x = x;
     _y = y;
-    _width = w;
-    _height = h;
+    _backgroundWidth = w;
+    _backgroundHeight = h;
     
     _text.setText("");
-    
-    _text.setHeight(_height);
-    _text.detectWidth();
 }
 
 string TextInput::getText() {
@@ -296,12 +309,12 @@ void TextInput::setY(int y) {
     _y = y;
 }
 
-void TextInput::setWidth(int w) {
-    _width = w;
+void TextInput::setBackgroundWidth(int w) {
+    _backgroundWidth = w;
 }
 
-void TextInput::setHeight(int h) {
-    _height = h;
+void TextInput::setBackgroundHeight(int h) {
+    _backgroundHeight = h;
     _text.setHeight(h - 10);
     _text.detectWidth();
 }
@@ -310,9 +323,26 @@ void TextInput::deleteLast() {
     _text.deleteLast();
 }
 
-void TextInput::setColor(int r, int g, int b, int a) {
+void TextInput::setTextColor(int r, int g, int b, int a) {
     _text.setColor(r, g, b, a);
 //    printf("R: %d, G: %d, B: %d, A: %d\n", _text.getColor()->r, _text.getColor()->g, _text.getColor()->b, _text.getColor()->a);
+}
+
+void TextInput::setBackgroundColor(int r, int g, int b, int a) {
+    _backgroundColor.r = r;
+    _backgroundColor.g = g;
+    _backgroundColor.b = b;
+    _backgroundColor.a = a;
+}
+
+void TextInput::setFontSize(int fontSize) {
+    _fontSize = fontSize;
+    
+    _text.initFont(fontSize);
+}
+
+void TextInput::setTextOffset(int textOffset) {
+    _textOffset = textOffset;
 }
 
 void TextInput::reset() {
@@ -328,10 +358,49 @@ void TextInput::update(char pressedLetters[], int numPressedLetters) {
 }
 
 void TextInput::draw(SDL_Renderer *renderer) {
-    SDL_Rect backgroundRect = { _x - 10, _y - 10, _width + 20, _height + 20 };
+    SDL_Rect backgroundRect = { _x, _y, _backgroundWidth, _backgroundHeight };
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderFillRect(renderer, &backgroundRect);
     
-    _text.draw(renderer, _x, _y);
+    _text.draw(renderer, _x + _textOffset, _y + _textOffset);
 //    printf("Error: %s\n", TTF_GetError());
+}
+
+ColorBlock::ColorBlock() {
+    _x = 0;
+    _y = 0;
+    
+    _color.r = 0;
+    _color.g = 0;
+    _color.b = 0;
+    _color.a = 0;
+}
+
+void ColorBlock::setX(int x) {
+    _x = x;
+}
+
+void ColorBlock::setY(int y) {
+    _y = y;
+}
+
+void ColorBlock::setWidth(int width) {
+    _width = width;
+}
+
+void ColorBlock::setHeight(int height) {
+    _height = height;
+}
+
+void ColorBlock::setColor(int r, int g, int b, int a) {
+    _color.r = r;
+    _color.g = g;
+    _color.b = b;
+    _color.a = a;
+}
+
+void ColorBlock::draw(SDL_Renderer *renderer) {
+    SDL_Rect blockRect = { _x, _y, _width, _height };
+    SDL_SetRenderDrawColor(renderer, _color.r, _color.g, _color.b, _color.a);
+    SDL_RenderFillRect(renderer, &blockRect);
 }

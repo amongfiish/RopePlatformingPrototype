@@ -18,7 +18,7 @@
 #include "controls.hpp"
 using namespace std;
 
-const int TEXT_SIZE = 128;
+const int DEFAULT_TEXT_SIZE = 32;
 
 class TextBox {
 public:
@@ -76,10 +76,13 @@ public:
     void setItemsToDisplay(int n);
     
     int getSelection();
+    void resetSelection();
     
     void addOption(string text, int r, int g, int b, int a);
     void editOptionText(int i, string text);
     void clearOptions();
+    
+    void setFontSize(int fontSize);
     
     void setPos(int x, int y);
     
@@ -117,10 +120,14 @@ public:
     
     void setX(int x);
     void setY(int y);
-    void setWidth(int w);
-    void setHeight(int h);
+    void setBackgroundWidth(int w);
+    void setBackgroundHeight(int h);
     
-    void setColor(int r, int g, int b, int a);
+    void setTextColor(int r, int g, int b, int a);
+    void setBackgroundColor(int r, int g, int b, int a);
+    
+    void setFontSize(int fontSize);
+    void setTextOffset(int textOffset);
     
     void reset();
     
@@ -132,8 +139,35 @@ private:
     
     int _x;
     int _y;
+    int _backgroundWidth;
+    int _backgroundHeight;
+    
+    int _textOffset;
+    int _fontSize;
+    
+    SDL_Color _backgroundColor;
+};
+
+class ColorBlock {
+public:
+    ColorBlock();
+    
+    void setX(int x);
+    void setY(int y);
+    void setWidth(int width);
+    void setHeight(int height);
+    
+    void setColor(int r, int g, int b, int a);
+    
+    void draw(SDL_Renderer *renderer);
+    
+private:
+    int _x;
+    int _y;
     int _width;
     int _height;
+    
+    SDL_Color _color;
 };
 
 #endif
