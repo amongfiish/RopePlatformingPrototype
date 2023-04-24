@@ -312,7 +312,8 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
     } else if (currentGameState == LEVEL_RESET) {
         player.setPos(player.getX() + returnVelocityX, player.getY() + returnVelocityY);
         
-        if (abs(player.getX() - level.getStartX()) < abs(returnVelocityX)) {
+        if (abs(player.getX() - level.getStartX()) <= abs(returnVelocityX) ||
+            abs(player.getY() - level.getStartY()) <= abs(returnVelocityY)) {
             player.setPos(level.getStartX(), level.getStartY());
             currentGameState = GAME;
         }
