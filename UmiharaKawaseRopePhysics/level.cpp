@@ -78,6 +78,9 @@ void Platform::draw(SDL_Renderer *renderer) {
         case ICE:
             SDL_SetRenderDrawColor(renderer, ICE_COLOR.r, ICE_COLOR.g, ICE_COLOR.b, ICE_COLOR.a);
             break;
+        case LAVA:
+            SDL_SetRenderDrawColor(renderer, LAVA_COLOR.r, LAVA_COLOR.g, LAVA_COLOR.b, LAVA_COLOR.a);
+            break;
     }
     
         

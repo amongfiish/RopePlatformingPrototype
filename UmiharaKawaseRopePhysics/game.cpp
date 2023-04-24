@@ -55,9 +55,13 @@ ColorBlock timerBackground;
 int editorCursorX = MAP_WIDTH / 2;
 int editorCursorY = MAP_HEIGHT / 2;
 
+const int RETURN_FRAMES = 15;
+double returnVelocityX;
+double returnVelocityY;
+
 void updateLevelEditor(KeyboardLayout *keys);
 bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLetters);
-void resetLevel();
+void resetLevel(bool animate);
 
 void updateAvailableLevels();
 
@@ -199,7 +203,7 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             
             currentGameState = GAME;
             
-            resetLevel();
+            resetLevel(false);
         }
     }
     
@@ -220,8 +224,9 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             currentGameState = PAUSE;
         }
         
-        if (keys->getResetState() == PRESSED) {
-            resetLevel();
+        if (keys->getResetState() == PRESSED && timerStarted) {
+            resetLevel(true);
+            return true;
         }
         
         if (level.collideEndX(player.getX(), player.getY(), player.getWidth(), player.getHeight())) {
@@ -252,7 +257,8 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         }
         
         if (!player.update(keys, &level)) {
-            resetLevel();
+            resetLevel(true);
+            return true;
         }
     } else if (currentGameState == PAUSE) {
         int pauseSelection = pauseOptions.update(keys);
@@ -266,7 +272,7 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             pauseOptions.resetSelection();
             currentGameState = GAME;
         } else if (pauseSelection == 1) {
-            resetLevel();
+            resetLevel(false);
             pauseOptions.resetSelection();
             currentGameState = GAME;
         } else if (pauseSelection == 2) {
@@ -276,7 +282,7 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             currentGameState = MENU;
             level.resetLevel();
             
-            resetLevel();
+            resetLevel(false);
         }
     } else if (currentGameState == LEVEL_EDITOR) {
         updateLevelEditor(keys);
@@ -288,10 +294,10 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         int endOption = endOptions.update(keys);
         
         if (endOption == 0) {
-            resetLevel();
+            resetLevel(false);
             currentGameState = GAME;
         } else if (endOption == 1) {
-            resetLevel();
+            resetLevel(false);
             currentGameState = LEVEL_EDITOR;
         } else if (endOption == 2) {
             level.setFastestTime(-1);
@@ -303,6 +309,13 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             level.resetLevel();
             currentGameState = MENU;
         }
+    } else if (currentGameState == LEVEL_RESET) {
+        player.setPos(player.getX() + returnVelocityX, player.getY() + returnVelocityY);
+        
+        if (abs(player.getX() - level.getStartX()) < abs(returnVelocityX)) {
+            player.setPos(level.getStartX(), level.getStartY());
+            currentGameState = GAME;
+        }
     }
     
     return true;
@@ -310,8 +323,8 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
 
 void gameDraw(SDL_Renderer* renderer) {
     if (currentGameState == GAME) {
-        player.draw(renderer);
         level.draw(renderer);
+        player.draw(renderer);
         timerBackground.setWidth(timer.getWidth() + 10);
         timerBackground.draw(renderer);
         timer.draw(renderer);
@@ -371,6 +384,9 @@ void gameDraw(SDL_Renderer* renderer) {
         timeIndicator.draw(renderer);
         fastestIndicator.draw(renderer);
         endOptions.draw(renderer);
+    } else if (currentGameState == LEVEL_RESET) {
+        level.draw(renderer);
+        player.draw(renderer);
     }
 }
 
@@ -451,12 +467,14 @@ void updateLevelEditor(KeyboardLayout *keys) {
                 !endPosHere) {
                 
                 level.setStartPos(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
+                currentLevelEditorMode = PLATFORM;
             }
         } else if (currentLevelEditorMode == END_POINT) {
             if (platformExists < 0 &&
                 !startPosHere) {
                 
                 level.setEndPos(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
+                currentLevelEditorMode = PLATFORM;
             }
         }
     }
@@ -542,7 +560,7 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             
             currentGameState = GAME;
             
-            resetLevel();
+            resetLevel(false);
         }
         
         levelSelector.update(keys);
@@ -573,11 +591,19 @@ void updateAvailableLevels() {
     }
 }
 
-void resetLevel() {
-    player.setPos(level.getStartX(), level.getStartY());
+void resetLevel(bool animate) {
     player.stop();
     player.destroyRope();
     player.destroyGrappleSeeker();
     
     timerStarted = false;
+    
+    if (animate) {
+        returnVelocityX = (level.getStartX() - player.getX()) / RETURN_FRAMES;
+        returnVelocityY = (level.getStartY() - player.getY()) / RETURN_FRAMES;
+
+        currentGameState = LEVEL_RESET;
+    } else {
+        player.setPos(level.getStartX(), level.getStartY());
+    }
 }

@@ -63,7 +63,7 @@ public:
     double getVelocityX();
     double getVelocityY();
     
-    void setPos(int x, int y);
+    void setPos(double x, double y);
     void stop();
     
     void createGrappleSeeker(double angle);

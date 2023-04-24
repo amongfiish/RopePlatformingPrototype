@@ -19,7 +19,8 @@ enum GameMode {
     PAUSE,
     GAME,
     LEVEL_EDITOR,
-    LEVEL_END
+    LEVEL_END,
+    LEVEL_RESET
 };
 
 enum LevelEditorMode {

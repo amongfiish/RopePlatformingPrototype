@@ -47,7 +47,7 @@ double Player::getVelocityY() {
     return _velocityY;
 }
 
-void Player::setPos(int x, int y) {
+void Player::setPos(double x, double y) {
     _x = x;
     _y = y;
 }
@@ -265,6 +265,10 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
     _grounded = false;
     for (int i = 0; i < level->getNumberOfPlatforms(); i++) {
         collision = checkCollision(level->getPlatform(i));
+        if (collision >= 0 && level->getPlatform(i)->getType() == LAVA) {
+            return false;
+        }
+        
         switch (collision) {
             case UP:
                 _velocityY = 0;

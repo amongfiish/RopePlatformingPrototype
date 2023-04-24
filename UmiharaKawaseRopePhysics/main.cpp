@@ -154,8 +154,8 @@ bool init() {
     
     defaultLayout.setNextEditorMode(SDL_SCANCODE_E);
     defaultLayout.setPreviousEditorMode(SDL_SCANCODE_Q);
-    defaultLayout.setNextPlatformType(SDL_SCANCODE_A);
-    defaultLayout.setPreviousPlatformType(SDL_SCANCODE_D);
+    defaultLayout.setNextPlatformType(SDL_SCANCODE_D);
+    defaultLayout.setPreviousPlatformType(SDL_SCANCODE_A);
     defaultLayout.setPlayToggle(SDL_SCANCODE_SPACE);
     
     activeKeyboardLayout = &defaultLayout;

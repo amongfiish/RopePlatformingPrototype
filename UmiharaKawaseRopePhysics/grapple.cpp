@@ -249,8 +249,8 @@ bool GrappleSeeker::seek(Level *level) {
             if (_numberOfPivots != 0) {
                 double pivotDistance = sqrt(pow(diffX, 2) + pow(diffY, 2));
                 if (pivotDistance <= sqrt(pow(_velocityX, 2) + pow(_velocityY, 2))) {
-                    if (_pivots[_numberOfPivots - 1].getPivotPlatform()->getType() != METAL) {
-                        _player->createRope(_pivots[_numberOfPivots - 1].getX(), _pivots[_numberOfPivots - 1].getY());
+                    if (_pivots[0].getPivotPlatform()->getType() != METAL && _pivots[0].getPivotPlatform()->getType() != LAVA) {
+                        _player->createRope(_pivots[0].getX(), _pivots[0].getY());
                         return true;
                     } else {
                         removeFirstPivot();
@@ -318,7 +318,7 @@ bool GrappleSeeker::seek(Level *level) {
 //        _player->createRope(closestCollision->getIntersectionX(), closestCollision->getIntersectionY() + 1);
 //    }
     
-    if (closestCollision->getPlatform()->getType() == METAL) {
+    if (closestCollision->getPlatform()->getType() == METAL || closestCollision->getPlatform()->getType() == LAVA) {
         _extending = false;
         _x -= _velocityX;
         _y -= _velocityY;
