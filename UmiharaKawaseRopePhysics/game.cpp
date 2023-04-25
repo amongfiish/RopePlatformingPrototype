@@ -31,6 +31,7 @@ TextBox versionIndicator;
 
 // level end text
 TextBox winIndicator;
+TextBox levelName;
 TextBox timeIndicator;
 TextBox fastestIndicator;
 TextSelection endOptions;
@@ -122,17 +123,22 @@ bool gameInit() {
     winIndicator.setY(100);
     winIndicator.initFont(48);
     
+    levelName.setColor(0xFF, 0xFF, 0xFF, 0xFF);
+    levelName.setX(250);
+    levelName.setY(170);
+    levelName.initFont(24);
+    
     timeIndicator.setColor(0xFF, 0xFF, 0x00, 0xFF);
     timeIndicator.setX(250);
-    timeIndicator.setY(170);
+    timeIndicator.setY(210);
     timeIndicator.initFont(24);
     
     fastestIndicator.setColor(0xFF, 0xFF, 0x00, 0xFF);
     fastestIndicator.setX(250);
-    fastestIndicator.setY(210);
+    fastestIndicator.setY(250);
     fastestIndicator.initFont(24);
     
-    endOptions.setPos(250, 250);
+    endOptions.setPos(250, 290);
     endOptions.setActive(true);
     endOptions.setScrollable(false);
     endOptions.setFontSize(24);
@@ -232,6 +238,7 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         if (level.collideEndX(player.getX(), player.getY(), player.getWidth(), player.getHeight())) {
             currentGameState = LEVEL_END;
             secondsTaken = (SDL_GetTicks64() - startTicks) / 1000.0;
+            levelName.setText(levelFilename);
             
             bool newFastest = false;
             if (secondsTaken < level.getFastestTime() || level.getFastestTime() < 0) {
@@ -312,7 +319,7 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
     } else if (currentGameState == LEVEL_RESET) {
         player.setPos(player.getX() + returnVelocityX, player.getY() + returnVelocityY);
         
-        if (abs(player.getX() - level.getStartX()) <= abs(returnVelocityX) ||
+        if (abs(player.getX() - level.getStartX()) <= abs(returnVelocityX) &&
             abs(player.getY() - level.getStartY()) <= abs(returnVelocityY)) {
             player.setPos(level.getStartX(), level.getStartY());
             currentGameState = GAME;
@@ -382,6 +389,7 @@ void gameDraw(SDL_Renderer* renderer) {
         }
     } else if (currentGameState == LEVEL_END) {
         winIndicator.draw(renderer);
+        levelName.draw(renderer);
         timeIndicator.draw(renderer);
         fastestIndicator.draw(renderer);
         endOptions.draw(renderer);
