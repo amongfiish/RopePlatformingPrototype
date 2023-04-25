@@ -433,8 +433,11 @@ void gameDraw(SDL_Renderer* renderer) {
 
 void updateLevelEditor(KeyboardLayout *keys) {
     if (keys->getResetState() == PRESSED) {
-        cameraX = level.getStartX() + PLATFORM_WIDTH / 2 - CAMERA_WIDTH / 2;
-        cameraY = level.getStartY() + PLATFORM_WIDTH / 2 - CAMERA_WIDTH / 2;
+        editorCursorX = level.getStartX() / PLATFORM_WIDTH;
+        editorCursorY = level.getStartY() / PLATFORM_HEIGHT;
+        
+        cameraX = level.getStartY() + PLATFORM_WIDTH / 2 - CAMERA_WIDTH / 2;
+        cameraY = level.getStartY() + PLATFORM_HEIGHT / 2 - CAMERA_HEIGHT / 2;
     }
     
     if (keys->getNextEditorModeState() == PRESSED) {
