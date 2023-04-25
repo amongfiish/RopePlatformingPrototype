@@ -52,6 +52,7 @@ public:
     int getType();
     
     void draw(SDL_Renderer *renderer);
+    void draw(SDL_Renderer *renderer, double cameraX, double cameraY);
     
 private:
     int _x;
@@ -80,6 +81,11 @@ public:
     int getEndY();
     void setEndPos(int x, int y);
     
+    int getMaxX();
+    int getMaxY();
+    
+    void correctLevel();
+    
     int platformExists(int x, int y);
     
     void addPlatform(int x, int y, int w, int h, int type);
@@ -93,6 +99,7 @@ public:
     void setFastestTime(double fastestTime);
     
     void draw(SDL_Renderer *renderer);
+    void draw(SDL_Renderer *renderer, double cameraX, double cameraY);
     
     void saveLevel(string filename);
     void loadLevel(string filename);
@@ -103,6 +110,9 @@ private:
     
     int _endX;
     int _endY;
+    
+    int _maxX;
+    int _maxY;
     
     Platform *_platforms;
     int _numberOfPlatforms;

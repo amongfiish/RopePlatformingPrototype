@@ -52,9 +52,15 @@ bool timerStarted;
 // in game text
 TextBox timer;
 ColorBlock timerBackground;
+int maxTimerWidth;
 
 int editorCursorX = MAP_WIDTH / 2;
 int editorCursorY = MAP_HEIGHT / 2;
+
+double cameraX;
+double cameraY;
+const int CAMERA_WIDTH = MAP_WIDTH * PLATFORM_WIDTH;
+const int CAMERA_HEIGHT = MAP_HEIGHT * PLATFORM_HEIGHT;
 
 const int RETURN_FRAMES = 15;
 double returnVelocityX;
@@ -204,6 +210,7 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         if (currentGameState == GAME) {
             currentGameState = LEVEL_EDITOR;
         } else if (currentGameState == LEVEL_EDITOR) {
+            level.correctLevel();
             level.setFastestTime(-1);
             level.saveLevel(levelFilename);
             
@@ -225,6 +232,9 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             }
         }
         timer.setText(timerText);
+        if (timer.getWidth() > maxTimerWidth) {
+            maxTimerWidth = timer.getWidth();
+        }
         
         if (keys->getPauseState() == PRESSED) {
             currentGameState = PAUSE;
@@ -251,7 +261,6 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
             snprintf(s, 50, "Time: %.3f secs", secondsTaken);
             
             timeIndicator.setText(s);
-            timeIndicator.detectWidth();
             
             if (!newFastest) {
                 snprintf(s, 50, "Fastest: %.3f secs", level.getFastestTime());
@@ -303,18 +312,22 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         if (endOption == 0) {
             resetLevel(false);
             currentGameState = GAME;
+            endOptions.resetSelection();
         } else if (endOption == 1) {
             resetLevel(false);
             currentGameState = LEVEL_EDITOR;
+            endOptions.resetSelection();
         } else if (endOption == 2) {
             level.setFastestTime(-1);
             level.saveLevel(levelFilename);
             fastestIndicator.setText("Fastest: no data");
             fastestIndicator.detectWidth();
+            endOptions.resetSelection();
         } else if (endOption == 3) {
             level.saveLevel(levelFilename);
             level.resetLevel();
             currentGameState = MENU;
+            endOptions.resetSelection();
         }
     } else if (currentGameState == LEVEL_RESET) {
         player.setPos(player.getX() + returnVelocityX, player.getY() + returnVelocityY);
@@ -326,21 +339,40 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         }
     }
     
+    // camera
+    if (currentGameState == GAME || currentGameState == LEVEL_END) {
+        cameraX = player.getX() + player.getWidth() / 2 - CAMERA_WIDTH / 2;
+        cameraY = player.getY() + player.getHeight() / 2 - CAMERA_HEIGHT / 2;
+        
+        // lock to map edges
+        if (cameraX < 0) {
+            cameraX = 0;
+        } else if (cameraX + CAMERA_WIDTH > level.getMaxX()) {
+            cameraX = level.getMaxX() - CAMERA_WIDTH;
+        }
+        
+        if (cameraY < 0) {
+            cameraY = 0;
+        } else if (cameraY + CAMERA_HEIGHT > level.getMaxY()) {
+            cameraY = level.getMaxY() - CAMERA_HEIGHT;
+        }
+    }
+    
     return true;
 }
 
 void gameDraw(SDL_Renderer* renderer) {
     if (currentGameState == GAME) {
-        level.draw(renderer);
-        player.draw(renderer);
-        timerBackground.setWidth(timer.getWidth() + 10);
+        level.draw(renderer, cameraX, cameraY);
+        player.draw(renderer, cameraX, cameraY);
+        timerBackground.setWidth(maxTimerWidth + 10);
         timerBackground.draw(renderer);
         timer.draw(renderer);
     } else if (currentGameState == PAUSE) {
         pauseIndicator.draw(renderer);
         pauseOptions.draw(renderer);
     } else if (currentGameState == LEVEL_EDITOR) {
-        level.draw(renderer);
+        level.draw(renderer, cameraX, cameraY);
         
         int r, g, b, a;
         if (currentLevelEditorMode == PLATFORM) {
@@ -366,11 +398,11 @@ void gameDraw(SDL_Renderer* renderer) {
         }
         
         SDL_SetRenderDrawColor(renderer, r, g, b, a);
-        SDL_Rect cursorRect = { editorCursorX * PLATFORM_WIDTH - 1, editorCursorY * PLATFORM_WIDTH - 1, PLATFORM_WIDTH + 2, PLATFORM_HEIGHT + 2 };
+        SDL_Rect cursorRect = { editorCursorX * PLATFORM_WIDTH - 1 - static_cast<int>(cameraX), editorCursorY * PLATFORM_WIDTH - 1 - static_cast<int>(cameraY), PLATFORM_WIDTH + 2, PLATFORM_HEIGHT + 2 };
         SDL_RenderDrawRect(renderer, &cursorRect);
         
         SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
-        SDL_Rect startPosRect = { level.getStartX(), level.getStartY(), PLATFORM_WIDTH, PLATFORM_HEIGHT };
+        SDL_Rect startPosRect = { level.getStartX() - static_cast<int>(cameraX), level.getStartY() - static_cast<int>(cameraY), PLATFORM_WIDTH, PLATFORM_HEIGHT };
         SDL_RenderFillRect(renderer, &startPosRect);
 
         editorIndicator.draw(renderer);
@@ -394,12 +426,17 @@ void gameDraw(SDL_Renderer* renderer) {
         fastestIndicator.draw(renderer);
         endOptions.draw(renderer);
     } else if (currentGameState == LEVEL_RESET) {
-        level.draw(renderer);
-        player.draw(renderer);
+        level.draw(renderer, cameraX, cameraY);
+        player.draw(renderer, cameraY, cameraY);
     }
 }
 
 void updateLevelEditor(KeyboardLayout *keys) {
+    if (keys->getResetState() == PRESSED) {
+        cameraX = level.getStartX() + PLATFORM_WIDTH / 2 - CAMERA_WIDTH / 2;
+        cameraY = level.getStartY() + PLATFORM_WIDTH / 2 - CAMERA_WIDTH / 2;
+    }
+    
     if (keys->getNextEditorModeState() == PRESSED) {
         currentLevelEditorMode++;
     }
@@ -442,17 +479,29 @@ void updateLevelEditor(KeyboardLayout *keys) {
         editorCursorX += 1;
     }
     
-    if (editorCursorX < 0) {
-        editorCursorX = MAP_WIDTH - 1;
-    } else if (editorCursorX >= MAP_WIDTH) {
-        editorCursorX = 0;
+    if (editorCursorX * PLATFORM_WIDTH < cameraX) {
+        cameraX = editorCursorX * PLATFORM_WIDTH;
+    } else if (editorCursorX * PLATFORM_WIDTH > cameraX + CAMERA_WIDTH - 1) {
+        cameraX = editorCursorX * PLATFORM_WIDTH - CAMERA_WIDTH + PLATFORM_WIDTH;
     }
     
-    if (editorCursorY < 0) {
-        editorCursorY = MAP_HEIGHT - 1;
-    } else if (editorCursorY >= MAP_HEIGHT) {
-        editorCursorY = 0;
+    if (editorCursorY * PLATFORM_HEIGHT < cameraY) {
+        cameraY = editorCursorY * PLATFORM_HEIGHT;
+    } else if (editorCursorY * PLATFORM_HEIGHT > cameraY + CAMERA_HEIGHT - 1) {
+        cameraY = editorCursorY * PLATFORM_HEIGHT - CAMERA_HEIGHT + PLATFORM_HEIGHT;
     }
+    
+//    if (editorCursorX < 0) {
+//        editorCursorX = MAP_WIDTH - 1;
+//    } else if (editorCursorX >= MAP_WIDTH) {
+//        editorCursorX = 0;
+//    }
+//
+//    if (editorCursorY < 0) {
+//        editorCursorY = MAP_HEIGHT - 1;
+//    } else if (editorCursorY >= MAP_HEIGHT) {
+//        editorCursorY = 0;
+//    }
     
     int platformExists = level.platformExists(editorCursorX * PLATFORM_WIDTH, editorCursorY * PLATFORM_HEIGHT);
     int startPosHere = (editorCursorX * PLATFORM_WIDTH == level.getStartX() && editorCursorY * PLATFORM_HEIGHT == level.getStartY());
@@ -534,6 +583,8 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
                     level.resetLevel();
                     
                     level.saveLevel(levelFilename);
+                    
+                    newLevelName.reset();
                 }
                 
                 return true;
@@ -606,7 +657,7 @@ void resetLevel(bool animate) {
     player.destroyGrappleSeeker();
     
     timerStarted = false;
-    
+
     if (animate) {
         returnVelocityX = (level.getStartX() - player.getX()) / RETURN_FRAMES;
         returnVelocityY = (level.getStartY() - player.getY()) / RETURN_FRAMES;
@@ -615,4 +666,6 @@ void resetLevel(bool animate) {
     } else {
         player.setPos(level.getStartX(), level.getStartY());
     }
+    
+    maxTimerWidth = 0;
 }

@@ -68,6 +68,10 @@ int Platform::getType() {
 }
 
 void Platform::draw(SDL_Renderer *renderer) {
+    draw(renderer, 0, 0);
+}
+
+void Platform::draw(SDL_Renderer *renderer, double cameraX, double cameraY) {
     switch (_type) {
         case NORMAL:
             SDL_SetRenderDrawColor(renderer, NORMAL_COLOR.r, NORMAL_COLOR.g, NORMAL_COLOR.b, NORMAL_COLOR.a);
@@ -84,7 +88,7 @@ void Platform::draw(SDL_Renderer *renderer) {
     }
     
         
-    SDL_Rect rect = { _x, _y, _width, _height };
+    SDL_Rect rect = { _x - static_cast<int>(cameraX), _y - static_cast<int>(cameraY), _width, _height };
     SDL_RenderFillRect(renderer, &rect);
 }
 
@@ -97,6 +101,9 @@ Level::Level() {
     _startY = 0;
     _endX = 64;
     _endY = 0;
+    
+    _maxX = MAP_WIDTH * PLATFORM_WIDTH;
+    _maxY = MAP_HEIGHT * PLATFORM_HEIGHT;
     
     _fastestTime = -1;
 }
@@ -151,6 +158,84 @@ int Level::getEndY() {
 void Level::setEndPos(int x, int y) {
     _endX = x;
     _endY = y;
+}
+
+int Level::getMaxX() {
+    return _maxX;
+}
+
+int Level::getMaxY() {
+    return _maxY;
+}
+
+void Level::correctLevel() {
+    int minX = _maxX;
+    int minY = _maxY;
+    
+    // determine minimum and maximum x and y
+    for (int i = 0; i < _numberOfPlatforms; i++) {
+        if (_platforms[i].getX() < minX) {
+            minX = _platforms[i].getX();
+        } else if (_platforms[i].getX() + _platforms[i].getWidth() - 1 > _maxX) {
+            _maxX = _platforms[i].getX() + _platforms[i].getWidth() - 1;
+        }
+        
+        if (_platforms[i].getY() < minY) {
+            minY = _platforms[i].getY();
+        } else if (_platforms[i].getY() + _platforms[i].getHeight() - 1 > _maxY) {
+            _maxY = _platforms[i].getY() + _platforms[i].getHeight() - 1;
+        }
+    }
+    
+    if (_startX < minX) {
+        minX = _startX;
+    } else if (_startX + PLATFORM_WIDTH > _maxX) {
+        _maxX = _startX + PLATFORM_WIDTH;
+    }
+    
+    if (_startY < minY) {
+        minY = _startY;
+    } else if (_startY + PLATFORM_HEIGHT > _maxY) {
+        _maxY = _startY + PLATFORM_HEIGHT;
+    }
+    
+    if (_endX < minX) {
+        minX = _endX;
+    } else if (_endX + PLATFORM_WIDTH > _maxX) {
+        _maxX = _endX + PLATFORM_WIDTH;
+    }
+    
+    if (_endY < minY) {
+        minY = _endY;
+    } else if (_endY + PLATFORM_HEIGHT > _maxY) {
+        _maxY = _endY + PLATFORM_HEIGHT;
+    }
+    
+    // update level based on the new values
+//    if (minX >= 0 && _maxX <= MAP_WIDTH * PLATFORM_WIDTH &&
+//        minY >= 0 && _maxY <= MAP_HEIGHT * PLATFORM_HEIGHT) {
+    for (int i = 0; i < _numberOfPlatforms; i++) {
+        _platforms[i].setX(_platforms[i].getX() - minX);
+        _platforms[i].setY(_platforms[i].getY() - minY);
+    }
+    
+    _startX -= minX;
+    _startY -= minY;
+    
+    _endX -= minX;
+    _endY -= minY;
+    
+    _maxX -= minX;
+    _maxY -= minY;
+//    }
+    
+    if (_maxX < MAP_WIDTH * PLATFORM_WIDTH) {
+        _maxX = MAP_WIDTH * PLATFORM_WIDTH;
+    }
+    
+    if (_maxY < MAP_HEIGHT * PLATFORM_HEIGHT) {
+        _maxY = MAP_HEIGHT * PLATFORM_HEIGHT;
+    }
 }
 
 void Level::addPlatform(int x, int y, int w, int h, int type) {
@@ -214,12 +299,16 @@ void Level::setFastestTime(double fastestTime) {
 }
 
 void Level::draw(SDL_Renderer *renderer) {
+    draw(renderer, 0, 0);
+}
+
+void Level::draw(SDL_Renderer *renderer, double cameraX, double cameraY) {
     for (int i = 0; i < _numberOfPlatforms; i++) {
-        _platforms[i].draw(renderer);
+        _platforms[i].draw(renderer, cameraX, cameraY);
     }
     
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
-    SDL_Rect endPosRect = { _endX, _endY, PLATFORM_WIDTH, PLATFORM_HEIGHT };
+    SDL_Rect endPosRect = { _endX - static_cast<int>(cameraX), _endY - static_cast<int>(cameraY), PLATFORM_WIDTH, PLATFORM_HEIGHT };
     
     SDL_RenderFillRect(renderer, &endPosRect);
 }
@@ -231,8 +320,8 @@ void Level::saveLevel(string filename) {
     ofstream file;
     file.open(filePath.string());
     
-    for (int y = 0; y < MAP_HEIGHT; y++) {
-        for (int x = 0; x < MAP_WIDTH; x++) {
+    for (int y = 0; y < _maxY / PLATFORM_HEIGHT; y++) {
+        for (int x = 0; x < _maxX / PLATFORM_HEIGHT; x++) {
             int platform = platformExists(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
             if (platform >= 0) {
                 file.put(_platforms[platform].getType() + 51);
@@ -244,6 +333,8 @@ void Level::saveLevel(string filename) {
                 file.put('0');
             }
         }
+        
+        file.put('\n');
     }
     
     file.close();
@@ -265,9 +356,20 @@ void Level::loadLevel(string filename) {
     
     if (!file.fail()) {
         char currentPos;
-        for (int y = 0; y < MAP_HEIGHT; y++) {
-            for (int x = 0; x < MAP_WIDTH; x++) {
+        int y = 0;
+        while (y >= 0) {
+            int x = 0;
+            while (true) {
                 file.get(currentPos);
+                
+                if (file.eof()) {
+                    y = -2;
+                    break;
+                }
+                
+                if (currentPos == '\n') {
+                    break;
+                }
                 
                 if (currentPos == '1') {
                     setStartPos(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
@@ -276,7 +378,11 @@ void Level::loadLevel(string filename) {
                 } else if (currentPos > '2') {
                     addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPos - 51);
                 }
+                
+                x++;
             }
+            
+            y++;
         }
     }
     

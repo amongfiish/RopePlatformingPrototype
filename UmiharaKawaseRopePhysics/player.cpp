@@ -5,6 +5,8 @@
 #define M_PI_4 M_PI/4
 #endif
 
+const int DEATH_MARGIN = 100;
+
 Player::Player() {
     _x = 0;
     _x = 0;
@@ -353,32 +355,32 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
         }
     }
     
-    if ((_x + _width + 1 < 0 || _x > MAP_WIDTH * PLATFORM_WIDTH || _y + _height + 1 < 0 || _y > MAP_HEIGHT * PLATFORM_HEIGHT) && !_rope && !_grappleSeeker) {
+    if ((_x + _width + 1 < -DEATH_MARGIN || _x > MAP_WIDTH * PLATFORM_WIDTH + DEATH_MARGIN || _y + _height + 1 < -DEATH_MARGIN || _y > MAP_HEIGHT * PLATFORM_HEIGHT + DEATH_MARGIN) && !_rope && !_grappleSeeker) {
         return false;
     }
     
     return true;
 }
 
-void Player::draw(SDL_Renderer *renderer) {
+void Player::draw(SDL_Renderer *renderer, double cameraX, double cameraY) {
     if (_rope) {
-        _rope->draw(renderer);
+        _rope->draw(renderer, cameraX, cameraY);
     } else if (_grappleSeeker) {
-        _grappleSeeker->draw(renderer);
+        _grappleSeeker->draw(renderer, cameraX, cameraY);
     }
     
     SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
     
-    SDL_Rect rect = { static_cast<int>(_x), static_cast<int>(_y), _width, _height };
+    SDL_Rect rect = { static_cast<int>(_x - cameraX), static_cast<int>(_y - cameraY), _width, _height };
     SDL_RenderFillRect(renderer, &rect);
     
     // eyes whites
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     
-    SDL_Rect leftWhiteRect = { static_cast<int>(_x) + LEFT_EYE_POS, static_cast<int>(_y) + EYE_HEIGHT, EYE_WIDTH, EYE_WIDTH };
+    SDL_Rect leftWhiteRect = { static_cast<int>(_x - cameraX) + LEFT_EYE_POS, static_cast<int>(_y - cameraY) + EYE_HEIGHT, EYE_WIDTH, EYE_WIDTH };
     SDL_RenderFillRect(renderer, &leftWhiteRect);
     
-    SDL_Rect rightWhiteRect = { static_cast<int>(_x) + RIGHT_EYE_POS, static_cast<int>(_y) + EYE_HEIGHT, EYE_WIDTH, EYE_WIDTH };
+    SDL_Rect rightWhiteRect = { static_cast<int>(_x - cameraX) + RIGHT_EYE_POS, static_cast<int>(_y - cameraY) + EYE_HEIGHT, EYE_WIDTH, EYE_WIDTH };
     SDL_RenderFillRect(renderer, &rightWhiteRect);
     
     // pupils
@@ -424,4 +426,8 @@ void Player::draw(SDL_Renderer *renderer) {
     
     SDL_RenderFillRect(renderer, &leftPupilRect);
     SDL_RenderFillRect(renderer, &rightPupilRect);
+}
+
+void Player::draw(SDL_Renderer *renderer) {
+    draw(renderer, 0, 0);
 }

@@ -569,21 +569,25 @@ int GrappleSeeker::wrapCorners(Level *level) {
 }
 
 void GrappleSeeker::draw(SDL_Renderer *renderer) {
+    draw(renderer, 0, 0);
+}
+
+void GrappleSeeker::draw(SDL_Renderer *renderer, int cameraX, int cameraY) {
     SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
     
     if (_numberOfPivots > 0) {
-        SDL_RenderDrawLine(renderer, _x, _y, _pivots[0].getDrawX(), _pivots[0].getDrawY());
+        SDL_RenderDrawLine(renderer, _x - cameraX, _y - cameraY, _pivots[0].getDrawX() - cameraX, _pivots[0].getDrawY() - cameraY);
         for (int i = 1; i < _numberOfPivots; i++) {
-            SDL_RenderDrawLine(renderer, _pivots[i - 1].getDrawX(), _pivots[i - 1].getDrawY(), _pivots[i].getDrawX(), _pivots[i].getDrawY());
+            SDL_RenderDrawLine(renderer, _pivots[i - 1].getDrawX() - cameraX, _pivots[i - 1].getDrawY() - cameraY, _pivots[i].getDrawX() - cameraX, _pivots[i].getDrawY() - cameraY);
         }
-        SDL_RenderDrawLine(renderer, _pivots[_numberOfPivots - 1].getDrawX(), _pivots[_numberOfPivots - 1].getDrawY(), _player->getX() + _player->getWidth() / 2, _player->getY() + _player->getHeight() / 2);
+        SDL_RenderDrawLine(renderer, _pivots[_numberOfPivots - 1].getDrawX() - cameraX, _pivots[_numberOfPivots - 1].getDrawY() - cameraY, _player->getX() + _player->getWidth() / 2 - cameraX, _player->getY() + _player->getHeight() / 2 - cameraY);
     } else {
-        SDL_RenderDrawLine(renderer, static_cast<int>(_player->getX() + _player->getWidth() / 2), static_cast<int>(_player->getY() + _player->getHeight() / 2), _x, _y);
+        SDL_RenderDrawLine(renderer, static_cast<int>(_player->getX() + _player->getWidth() / 2 - cameraX), static_cast<int>(_player->getY() + _player->getHeight() / 2 - cameraY), _x - cameraX, _y - cameraY);
     }
     
     // square where the hook is
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
-    SDL_Rect grappleRect = { static_cast<int>(_x) - GRAPPLE_RECT_HALF_WIDTH, static_cast<int>(_y) - GRAPPLE_RECT_HALF_WIDTH, GRAPPLE_RECT_HALF_WIDTH * 2, GRAPPLE_RECT_HALF_WIDTH * 2 };
+    SDL_Rect grappleRect = { static_cast<int>(_x - cameraX) - GRAPPLE_RECT_HALF_WIDTH, static_cast<int>(_y - cameraY) - GRAPPLE_RECT_HALF_WIDTH, GRAPPLE_RECT_HALF_WIDTH * 2, GRAPPLE_RECT_HALF_WIDTH * 2 };
     SDL_RenderFillRect(renderer, &grappleRect);
 }
 
@@ -992,21 +996,25 @@ bool Rope::update(Level *level) {
 }
 
 void Rope::draw(SDL_Renderer *renderer) {
+    draw(renderer, 0, 0);
+}
+
+void Rope::draw(SDL_Renderer *renderer, double cameraX, double cameraY) {
     SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
     
     if (_numberOfPivots > 0) {
-        SDL_RenderDrawLine(renderer, _grappleX, _grappleY, _pivots[0].getDrawX(), _pivots[0].getDrawY());
+        SDL_RenderDrawLine(renderer, _grappleX - cameraX, _grappleY - cameraY, _pivots[0].getDrawX() - cameraX, _pivots[0].getDrawY() - cameraY);
         for (int i = 1; i < _numberOfPivots; i++) {
-            SDL_RenderDrawLine(renderer, _pivots[i - 1].getDrawX(), _pivots[i - 1].getDrawY(), _pivots[i].getDrawX(), _pivots[i].getDrawY());
+            SDL_RenderDrawLine(renderer, _pivots[i - 1].getDrawX() - cameraX, _pivots[i - 1].getDrawY() - cameraY, _pivots[i].getDrawX() - cameraX, _pivots[i].getDrawY() - cameraY);
         }
-        SDL_RenderDrawLine(renderer, _pivots[_numberOfPivots - 1].getDrawX(), _pivots[_numberOfPivots - 1].getDrawY(), _player->getX() + _player->getWidth() / 2, _player->getY() + _player->getHeight() / 2);
+        SDL_RenderDrawLine(renderer, _pivots[_numberOfPivots - 1].getDrawX() - cameraX, _pivots[_numberOfPivots - 1].getDrawY() - cameraY, _player->getX() + _player->getWidth() / 2 - cameraX, _player->getY() + _player->getHeight() / 2 - cameraY);
     } else {
-        SDL_RenderDrawLine(renderer, static_cast<int>(_player->getX() + _player->getWidth() / 2), static_cast<int>(_player->getY() + _player->getHeight() / 2), _grappleX, _grappleY);
+        SDL_RenderDrawLine(renderer, static_cast<int>(_player->getX() + _player->getWidth() / 2 - cameraX), static_cast<int>(_player->getY() + _player->getHeight() / 2 - cameraY), _grappleX - cameraX, _grappleY - cameraY);
     }
     
     // square where the hook is
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
-    SDL_Rect grappleRect = { _grappleX - GRAPPLE_RECT_HALF_WIDTH, _grappleY - GRAPPLE_RECT_HALF_WIDTH, GRAPPLE_RECT_HALF_WIDTH * 2, GRAPPLE_RECT_HALF_WIDTH * 2 };
+    SDL_Rect grappleRect = { _grappleX - static_cast<int>(cameraX) - GRAPPLE_RECT_HALF_WIDTH, _grappleY - static_cast<int>(cameraY) - GRAPPLE_RECT_HALF_WIDTH, GRAPPLE_RECT_HALF_WIDTH * 2, GRAPPLE_RECT_HALF_WIDTH * 2 };
     SDL_RenderFillRect(renderer, &grappleRect);
 }
 

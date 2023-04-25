@@ -110,6 +110,7 @@ public:
     int wrapCorners(Level *level);
     
     void draw(SDL_Renderer *renderer);
+    void draw(SDL_Renderer *renderer, int cameraX, int cameraY);
     
 private:
     Player *_player;    // seeker origin
@@ -151,7 +152,9 @@ public:
     void addPivot(Platform *platform, int corner);
     
     bool update(Level *level);
+    
     void draw(SDL_Renderer *renderer);
+    void draw(SDL_Renderer *renderer, double cameraX, double cameraY);
     
 private:
     Player *_player;

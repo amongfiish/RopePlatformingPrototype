@@ -79,7 +79,9 @@ public:
     Rope *getRope();
     
     bool update(KeyboardLayout *keys, Level *level);
+    
     void draw(SDL_Renderer *renderer);
+    void draw(SDL_Renderer *renderer, double cameraX, double cameraY);
     
     int checkCollision(Platform *p);
     
