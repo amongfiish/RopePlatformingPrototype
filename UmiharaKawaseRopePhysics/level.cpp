@@ -4,6 +4,8 @@
 
 #include "level.hpp"
 
+const string FILE_VERSION_INDICATOR = "A";
+
 Platform::Platform() {
     _x = 0;
     _y = 0;
@@ -191,53 +193,58 @@ void Level::correctLevel() {
     
     if (_startX < minX) {
         minX = _startX;
-    } else if (_startX + PLATFORM_WIDTH > _maxX) {
-        _maxX = _startX + PLATFORM_WIDTH;
+    } else if (_startX + PLATFORM_WIDTH - 1 > _maxX) {
+        _maxX = _startX + PLATFORM_WIDTH - 1;
     }
     
     if (_startY < minY) {
         minY = _startY;
-    } else if (_startY + PLATFORM_HEIGHT > _maxY) {
-        _maxY = _startY + PLATFORM_HEIGHT;
+    } else if (_startY + PLATFORM_HEIGHT - 1 > _maxY) {
+        _maxY = _startY + PLATFORM_HEIGHT - 1;
     }
     
     if (_endX < minX) {
         minX = _endX;
-    } else if (_endX + PLATFORM_WIDTH > _maxX) {
-        _maxX = _endX + PLATFORM_WIDTH;
+    } else if (_endX + PLATFORM_WIDTH - 1 > _maxX) {
+        _maxX = _endX + PLATFORM_WIDTH - 1;
     }
     
     if (_endY < minY) {
         minY = _endY;
-    } else if (_endY + PLATFORM_HEIGHT > _maxY) {
-        _maxY = _endY + PLATFORM_HEIGHT;
+    } else if (_endY + PLATFORM_HEIGHT - 1 > _maxY) {
+        _maxY = _endY + PLATFORM_HEIGHT - 1;
     }
     
     // update level based on the new values
-//    if (minX >= 0 && _maxX <= MAP_WIDTH * PLATFORM_WIDTH &&
-//        minY >= 0 && _maxY <= MAP_HEIGHT * PLATFORM_HEIGHT) {
-    for (int i = 0; i < _numberOfPlatforms; i++) {
-        _platforms[i].setX(_platforms[i].getX() - minX);
-        _platforms[i].setY(_platforms[i].getY() - minY);
+    if (minX >= 0 && _maxX <= MAP_WIDTH * PLATFORM_WIDTH &&
+        minY >= 0 && _maxY <= MAP_HEIGHT * PLATFORM_HEIGHT) {
+        minX = 0;
+        minY = 0;
+    } else {
+        for (int i = 0; i < _numberOfPlatforms; i++) {
+            _platforms[i].setX(_platforms[i].getX() - minX);
+            _platforms[i].setY(_platforms[i].getY() - minY);
+        }
+        
+        _startX -= minX;
+        _startY -= minY;
+        
+        _endX -= minX;
+        _endY -= minY;
+        
+        _maxX -= minX;
+        _maxY -= minY;
     }
     
-    _startX -= minX;
-    _startY -= minY;
-    
-    _endX -= minX;
-    _endY -= minY;
-    
-    _maxX -= minX;
-    _maxY -= minY;
-//    }
-    
-    if (_maxX < MAP_WIDTH * PLATFORM_WIDTH) {
-        _maxX = MAP_WIDTH * PLATFORM_WIDTH;
+    if (_maxX < MAP_WIDTH * PLATFORM_WIDTH - 1) {
+        _maxX = MAP_WIDTH * PLATFORM_WIDTH - 1;
     }
     
-    if (_maxY < MAP_HEIGHT * PLATFORM_HEIGHT) {
-        _maxY = MAP_HEIGHT * PLATFORM_HEIGHT;
+    if (_maxY < MAP_HEIGHT * PLATFORM_HEIGHT - 1) {
+        _maxY = MAP_HEIGHT * PLATFORM_HEIGHT - 1;
     }
+    
+    printf("MaxX: %d, MinX: %d, MaxY: %d, MinY: %d\n", _maxX, minX, _maxY, minY);
 }
 
 void Level::addPlatform(int x, int y, int w, int h, int type) {
@@ -322,6 +329,8 @@ void Level::saveLevel(string filename) {
     ofstream file;
     file.open(filePath.string());
     
+    file << FILE_VERSION_INDICATOR << '\n';
+    
     for (int y = 0; y <= _maxY / PLATFORM_HEIGHT; y++) {
         for (int x = 0; x <= _maxX / PLATFORM_HEIGHT; x++) {
             int platform = platformExists(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
@@ -357,34 +366,59 @@ void Level::loadLevel(string filename) {
     file.open(filePath.string());
     
     if (!file.fail()) {
+        string fileVersion;
+        file >> fileVersion;
+        
         char currentPos;
-        int y = 0;
-        while (y >= 0) {
-            int x = 0;
-            while (true) {
-                file.get(currentPos);
-                
-                if (file.eof()) {
-                    y = -2;
-                    break;
-                }
-                
-                if (currentPos == '\n') {
-                    break;
-                }
-                
-                if (currentPos == '1') {
-                    setStartPos(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
-                } else if (currentPos == '2') {
-                    setEndPos(x * PLATFORM_WIDTH, y * PLATFORM_WIDTH);
-                } else if (currentPos > '2') {
-                    addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPos - 51);
-                }
-                
-                x++;
-            }
+        
+        if (fileVersion == "A") {
+            file.seekg(1, ios_base::cur);
             
-            y++;
+            int y = 0;
+            while (y >= 0) {
+                int x = 0;
+                while (true) {
+                    file.get(currentPos);
+                    
+                    if (file.eof()) {
+                        y = -2;
+                        break;
+                    }
+                    
+                    if (currentPos == '\n') {
+                        break;
+                    }
+                    
+                    if (currentPos == '1') {
+                        setStartPos(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
+                    } else if (currentPos == '2') {
+                        setEndPos(x * PLATFORM_WIDTH, y * PLATFORM_WIDTH);
+                    } else if (currentPos > '2') {
+                        addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPos - 51);
+                    }
+                    
+                    x++;
+                }
+                
+                y++;
+            }
+        } else {
+            // reset file read position
+            file.seekg(0);
+            
+            for (int y = 0; y < MAP_HEIGHT; y++) {
+                for (int x = 0; x < MAP_WIDTH; x++) {
+                    file.get(currentPos);
+                    
+                    if (currentPos == '1') {
+                        setStartPos(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
+                    } else if (currentPos == '2') {
+                        setEndPos(x * PLATFORM_WIDTH, y * PLATFORM_WIDTH);
+                    } else if (currentPos > '2') {
+                        addPlatform(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT, PLATFORM_WIDTH, PLATFORM_HEIGHT, currentPos - 51);
+                    }
+                }
+            }
         }
         
         correctLevel();
