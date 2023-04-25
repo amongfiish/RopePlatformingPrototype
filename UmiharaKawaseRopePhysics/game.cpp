@@ -340,7 +340,7 @@ bool gameUpdate(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
     }
     
     // camera
-    if (currentGameState == GAME || currentGameState == LEVEL_END) {
+    if (currentGameState == GAME || currentGameState == LEVEL_RESET) {
         cameraX = player.getX() + player.getWidth() / 2 - CAMERA_WIDTH / 2;
         cameraY = player.getY() + player.getHeight() / 2 - CAMERA_HEIGHT / 2;
         
@@ -427,7 +427,7 @@ void gameDraw(SDL_Renderer* renderer) {
         endOptions.draw(renderer);
     } else if (currentGameState == LEVEL_RESET) {
         level.draw(renderer, cameraX, cameraY);
-        player.draw(renderer, cameraY, cameraY);
+        player.draw(renderer, cameraX, cameraY);
     }
 }
 

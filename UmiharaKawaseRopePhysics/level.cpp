@@ -169,8 +169,10 @@ int Level::getMaxY() {
 }
 
 void Level::correctLevel() {
-    int minX = _maxX;
-    int minY = _maxY;
+    int minX = SDL_MAX_SINT32;
+    int minY = SDL_MAX_SINT32;
+    _maxX = SDL_MIN_SINT32;
+    _maxY = SDL_MIN_SINT32;
     
     // determine minimum and maximum x and y
     for (int i = 0; i < _numberOfPlatforms; i++) {
@@ -320,8 +322,8 @@ void Level::saveLevel(string filename) {
     ofstream file;
     file.open(filePath.string());
     
-    for (int y = 0; y < _maxY / PLATFORM_HEIGHT; y++) {
-        for (int x = 0; x < _maxX / PLATFORM_HEIGHT; x++) {
+    for (int y = 0; y <= _maxY / PLATFORM_HEIGHT; y++) {
+        for (int x = 0; x <= _maxX / PLATFORM_HEIGHT; x++) {
             int platform = platformExists(x * PLATFORM_WIDTH, y * PLATFORM_HEIGHT);
             if (platform >= 0) {
                 file.put(_platforms[platform].getType() + 51);
@@ -384,6 +386,8 @@ void Level::loadLevel(string filename) {
             
             y++;
         }
+        
+        correctLevel();
     }
     
     file.close();

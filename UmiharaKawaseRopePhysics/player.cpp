@@ -355,7 +355,7 @@ bool Player::update(KeyboardLayout *keys, Level *level) {
         }
     }
     
-    if ((_x + _width + 1 < -DEATH_MARGIN || _x > MAP_WIDTH * PLATFORM_WIDTH + DEATH_MARGIN || _y + _height + 1 < -DEATH_MARGIN || _y > MAP_HEIGHT * PLATFORM_HEIGHT + DEATH_MARGIN) && !_rope && !_grappleSeeker) {
+    if ((_x + _width + 1 < -DEATH_MARGIN || _x > level->getMaxX() + DEATH_MARGIN || _y + _height + 1 < -DEATH_MARGIN || _y > level->getMaxY() + DEATH_MARGIN) && !_rope && !_grappleSeeker) {
         return false;
     }
     
