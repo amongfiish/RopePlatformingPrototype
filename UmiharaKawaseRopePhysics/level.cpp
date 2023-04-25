@@ -244,7 +244,7 @@ void Level::correctLevel() {
         _maxY = MAP_HEIGHT * PLATFORM_HEIGHT - 1;
     }
     
-    printf("MaxX: %d, MinX: %d, MaxY: %d, MinY: %d\n", _maxX, minX, _maxY, minY);
+//    printf("MaxX: %d, MinX: %d, MaxY: %d, MinY: %d\n", _maxX, minX, _maxY, minY);
 }
 
 void Level::addPlatform(int x, int y, int w, int h, int type) {
