@@ -436,7 +436,7 @@ void updateLevelEditor(KeyboardLayout *keys) {
         editorCursorX = level.getStartX() / PLATFORM_WIDTH;
         editorCursorY = level.getStartY() / PLATFORM_HEIGHT;
         
-        cameraX = level.getStartY() + PLATFORM_WIDTH / 2 - CAMERA_WIDTH / 2;
+        cameraX = level.getStartX() + PLATFORM_WIDTH / 2 - CAMERA_WIDTH / 2;
         cameraY = level.getStartY() + PLATFORM_HEIGHT / 2 - CAMERA_HEIGHT / 2;
     }
     
