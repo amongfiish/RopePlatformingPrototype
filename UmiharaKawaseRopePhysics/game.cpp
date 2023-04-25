@@ -7,7 +7,7 @@
 #include "text.hpp"
 using namespace std;
 
-const string VERSION = "indev 6-7";
+const string VERSION = "indev 8";
 
 int currentGameState = MENU;
 int currentLevelEditorMode = PLATFORM;
@@ -59,8 +59,8 @@ int editorCursorY = MAP_HEIGHT / 2;
 
 double cameraX;
 double cameraY;
-const int CAMERA_WIDTH = MAP_WIDTH * PLATFORM_WIDTH;
-const int CAMERA_HEIGHT = MAP_HEIGHT * PLATFORM_HEIGHT;
+const int CAMERA_WIDTH = MAP_WIDTH * PLATFORM_WIDTH - 1;
+const int CAMERA_HEIGHT = MAP_HEIGHT * PLATFORM_HEIGHT - 1;
 
 const int RETURN_FRAMES = 15;
 double returnVelocityX;
