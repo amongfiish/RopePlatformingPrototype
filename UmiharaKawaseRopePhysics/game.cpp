@@ -62,6 +62,9 @@ double cameraY;
 const int CAMERA_WIDTH = MAP_WIDTH * PLATFORM_WIDTH - 1;
 const int CAMERA_HEIGHT = MAP_HEIGHT * PLATFORM_HEIGHT - 1;
 
+double editorCameraX;
+double editorCameraY;
+
 const int RETURN_FRAMES = 15;
 double returnVelocityX;
 double returnVelocityY;

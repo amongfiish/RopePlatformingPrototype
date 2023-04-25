@@ -215,26 +215,22 @@ void Level::correctLevel() {
         _maxY = _endY + PLATFORM_HEIGHT - 1;
     }
     
+//    printf("minx: %d, miny: %d\n", minX, minY);
+    
     // update level based on the new values
-    if (minX >= 0 && _maxX <= MAP_WIDTH * PLATFORM_WIDTH &&
-        minY >= 0 && _maxY <= MAP_HEIGHT * PLATFORM_HEIGHT) {
-        minX = 0;
-        minY = 0;
-    } else {
-        for (int i = 0; i < _numberOfPlatforms; i++) {
-            _platforms[i].setX(_platforms[i].getX() - minX);
-            _platforms[i].setY(_platforms[i].getY() - minY);
-        }
-        
-        _startX -= minX;
-        _startY -= minY;
-        
-        _endX -= minX;
-        _endY -= minY;
-        
-        _maxX -= minX;
-        _maxY -= minY;
+    for (int i = 0; i < _numberOfPlatforms; i++) {
+        _platforms[i].setX(_platforms[i].getX() - minX);
+        _platforms[i].setY(_platforms[i].getY() - minY);
     }
+    
+    _startX -= minX;
+    _startY -= minY;
+    
+    _endX -= minX;
+    _endY -= minY;
+    
+    _maxX -= minX;
+    _maxY -= minY;
     
     if (_maxX < MAP_WIDTH * PLATFORM_WIDTH - 1) {
         _maxX = MAP_WIDTH * PLATFORM_WIDTH - 1;
