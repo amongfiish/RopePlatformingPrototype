@@ -1,7 +1,7 @@
 #ifndef level_hpp
 #define level_hpp
 
-#ifdef __APPLE__
+#if defined __APPLE__ || defined __linux__
 #include <SDL2/SDL.h>
 #endif
 

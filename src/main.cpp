@@ -6,6 +6,11 @@
 #include <SDL2_ttf/SDL_ttf.h>
 #endif
 
+#ifdef __linux__
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#endif
+
 #ifdef _WIN64
 #include <SDL.h>
 #include <SDL_ttf.h>
