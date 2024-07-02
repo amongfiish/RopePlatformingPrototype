@@ -7,7 +7,7 @@
 #include "text.hpp"
 using namespace std;
 
-const string VERSION = "indev 8";
+const string VERSION = "indev 9 (on hold)";
 
 int currentGameState = MENU;
 int currentLevelEditorMode = PLATFORM;
@@ -93,7 +93,6 @@ bool gameInit() {
     titleOptions.setActive(true);
     titleOptions.setScrollable(false);
     titleOptions.setFontSize(24);
-    titleOptions.addOption("CAMPAIGN", 0xFF, 0xFF, 0xFF, 0xFF);
     titleOptions.addOption("NEW LEVEL", 0xFF, 0xFF, 0xFF, 0xFF);
     titleOptions.addOption("LOAD LEVEL", 0xFF, 0xFF, 0xFF, 0xFF);
     titleOptions.addOption("QUIT", 0xFF, 0xFF, 0xFF, 0xFF);
@@ -632,16 +631,16 @@ bool updateMenu(KeyboardLayout *keys, char pressedLetters[], int numPressedLette
         levelSelector.update(keys);
     }
     
-    if (titleOptionsSelection == 1) {
+    if (titleOptionsSelection == 0) {
         creatingLevel = true;
         titleOptions.setActive(false);
-    } else if (titleOptionsSelection == 2) {
+    } else if (titleOptionsSelection == 1) {
         selectingLevel = true;
         titleOptions.setActive(false);
         levelSelector.setActive(true);
         
         updateAvailableLevels();
-    } else if (titleOptionsSelection == 3) {
+    } else if (titleOptionsSelection == 2) {
         return false;
     }
     
