@@ -1,20 +1,18 @@
 # only tested on linux!!
 
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-project(UmiharaKawaseRopePhysics)
+project(RopePlatformingPrototype)
 
 file(GLOB SOURCES src/*.cpp src/*.hpp)
 
-find_package(SDL2 REQUIRED)
-find_package(SDL2TTF REQUIRED)
+add_subdirectory(lib/sdl)
+add_subdirectory(lib/sdl_ttf)
 
-include_directories(${SDL2_INCLUDE_DIRS} ${SDL2TTF_INCLUDE_DIR})
-
-add_executable(UmiharaKawaseRopePhysics ${SOURCES})
-target_link_libraries(UmiharaKawaseRopePhysics ${SDL2_LIBRARIES} ${SDL2TTF_LIBRARY})
+add_executable(RopePlatformingPrototype ${SOURCES})
+target_link_libraries(RopePlatformingPrototype PUBLIC SDL2 SDL2_ttf)
+target_include_directories(RopePlatformingPrototype PUBLIC lib/sdl/include lib/sdl_ttf)
 

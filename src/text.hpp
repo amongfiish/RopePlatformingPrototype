@@ -1,21 +1,16 @@
 #ifndef text_hpp
 #define text_hpp
 
-#ifdef __APPLE__
+#ifdef __APPLE__ || __linux__
 #include <SDL2/SDL.h>
-#include <SDL2_ttf/SDL_ttf.h>
-#endif
-
-#ifdef __linux__
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 #endif
 
 #ifdef _WIN64
 #include <SDL.h>
-#include <SDL_ttf.h>
 #undef main
 #endif
+
+#include <SDL_ttf.h>
 
 #include <stdio.h>
 #include <string>

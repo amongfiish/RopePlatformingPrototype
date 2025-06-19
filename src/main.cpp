@@ -1,20 +1,15 @@
 #include <cstdio>
 #include <filesystem>
 
-#ifdef __APPLE__
-#include <SDL2/SDL.h>
-#include <SDL2_ttf/SDL_ttf.h>
-#endif
-
-#ifdef __linux__
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+#ifdef __APPLE__ || __linux__
+    #include <SDL2/SDL.h>
 #endif
 
 #ifdef _WIN64
-#include <SDL.h>
-#include <SDL_ttf.h>
+    #include <SDL.h>
 #endif
+
+#include <SDL_ttf.h>
 
 #include "game.hpp"
 #include "level.hpp"
